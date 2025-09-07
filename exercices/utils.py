@@ -6,18 +6,28 @@ such as displaying long pieces of text in a scrollable box.
 
 from __future__ import annotations
 
+import subprocess
 import pydoc
 
 
 def scroll_text(text: str) -> None:
     """Display ``text`` inside a scrollable pager.
 
-    The user can navigate with the arrow keys when the content is longer
-    than the terminal size.  Execution returns once the user exits the
-    pager (usually by pressing ``q``).
+    The function prefers the ``less`` pager so that ANSI colours and
+    Unicode characters are rendered correctly.  If ``less`` is not
+    available, it falls back to :func:`pydoc.pager`.
+
+    Parameters
+    ----------
+    text:
+        The content to display.
     """
 
-    pydoc.pager(text)
+    try:
+        # ``-R`` preserves raw control characters (colours).
+        subprocess.run(["less", "-R"], input=text, text=True, check=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pydoc.pager(text)
 
 
 def wait_for_letter(letter: str, prompt: str) -> None:
