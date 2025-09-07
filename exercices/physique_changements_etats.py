@@ -1,22 +1,30 @@
 """Leçon et quiz sur les changements d'état de la matière."""
 
+from pydoc import pager
+
 
 def main():
     """Présente la leçon puis un quiz corrigé."""
-    # Leçon introductive
-    print("Changements d'état de la matière\n")
-    print("1. Fusion : passage de l'état solide à l'état liquide. \n"
-          "   Exemple : la glace qui devient de l'eau." )
-    print("2. Solidification : passage du liquide au solide. \n"
-          "   Exemple : l'eau qui gèle dans le congélateur.")
-    print("3. Vaporisation : passage du liquide au gaz. \n"
-          "   Exemple : l'eau qui bout devient de la vapeur.")
-    print("4. Condensation : passage du gaz au liquide. \n"
-          "   Exemple : la vapeur d'eau qui forme des gouttes sur une vitre froide.")
-    print("5. Sublimation : passage direct du solide au gaz sans devenir liquide. \n"
-          "   Exemple : la glace sèche qui disparaît en fumée.")
-    print("6. Condensation solide : passage direct du gaz au solide. \n"
-          "   Exemple : le givre qui se forme sur une fenêtre en hiver.\n")
+    # Leçon introductive affichée via un pager.
+    lesson = (
+        "Changements d'état de la matière\n"
+        "(Tape 'q' pour passer au quiz)\n\n"
+        "1. Fusion : passage de l'état solide à l'état liquide. \n"
+        "   Exemple : la glace qui devient de l'eau.\n"
+        "2. Solidification : passage du liquide au solide. \n"
+        "   Exemple : l'eau qui gèle dans le congélateur.\n"
+        "3. Vaporisation : passage du liquide au gaz. \n"
+        "   Exemple : l'eau qui bout devient de la vapeur.\n"
+        "4. Condensation : passage du gaz au liquide. \n"
+        "   Exemple : la vapeur d'eau qui forme des gouttes sur une vitre froide.\n"
+        "5. Sublimation : passage direct du solide au gaz sans devenir liquide. \n"
+        "   Exemple : la glace sèche qui disparaît en fumée.\n"
+        "6. Condensation solide : passage direct du gaz au solide. \n"
+        "   Exemple : le givre qui se forme sur une fenêtre en hiver.\n\n"
+        "(Tape 'q' pour passer au quiz)"
+    )
+    print("La leçon va s'afficher. Tape 'q' pour passer au quiz.")
+    pager(lesson)
 
     # Définition des questions du quiz
     questions = [
