@@ -17,32 +17,41 @@ except Exception:  # pragma: no cover - import will fail on non-Windows
     msvcrt = None  # type: ignore[assignment]
 
 
-def scroll_text(text: str) -> None:
+def scroll_text(text: str, exit_letter: str = "q", hint: str | None = None) -> None:
     """Display ``text`` inside a scrollable pager.
 
-    On Windows, :mod:`pydoc` may fail to display Unicode characters such
-    as emojis because the pager it invokes cannot handle UTF-8.  To make
-    sure the colourful lessons render correctly, a small custom pager is
-    used when running on Windows.  It supports scrolling with the arrow
-    keys and exiting with ``q``.  On other platforms :func:`pydoc.pager`
-    is still used to benefit from the user's configured pager.
+    The pager always shows a hint about which key to press to exit.  On
+    Windows a small custom implementation is used so emojis display
+    correctly.  Elsewhere :func:`pydoc.pager` is still leveraged but the
+    hint is added at the beginning and end of the text so the user knows
+    to press ``exit_letter`` to continue.
 
     Parameters
     ----------
     text:
         The content to display.
+    exit_letter:
+        Key that closes the pager.
+    hint:
+        Message shown to the user.  Defaults to ``"Tape '{exit_letter}' pour continuer"``.
     """
 
+    if hint is None:
+        hint = f"Tape '{exit_letter}' pour continuer"
+
     if os.name == "nt" and msvcrt is not None:  # pragma: no cover - can't test on Linux
-        _scroll_text_windows(text)
+        # Add the hint to the top of the text and keep another copy on the
+        # bottom line that remains visible while scrolling.
+        _scroll_text_windows(f"{hint}\n\n{text}", exit_letter, hint)
     else:  # fall back to pydoc's pager elsewhere
+        decorated = f"{hint}\n\n{text}\n\n{hint}"
         try:
-            pydoc.pager(text)
+            pydoc.pager(decorated)
         except Exception:
-            print(text)
+            print(decorated)
 
 
-def _scroll_text_windows(text: str) -> None:  # pragma: no cover - Windows only
+def _scroll_text_windows(text: str, exit_letter: str, hint: str) -> None:  # pragma: no cover - Windows only
     """Simple pager for Windows that keeps emojis intact."""
 
     lines: List[str] = text.splitlines()
@@ -54,8 +63,13 @@ def _scroll_text_windows(text: str) -> None:  # pragma: no cover - Windows only
 
     while True:
         clear()
-        for line in lines[top : top + height]:
+        window = lines[top : top + height]
+        for line in window:
             print(line)
+        # pad with blank lines so the hint stays at the bottom
+        for _ in range(height - len(window)):
+            print()
+        print(hint)
 
         key = msvcrt.getwch()
         # Arrow keys are reported as a two-character sequence starting
@@ -66,7 +80,7 @@ def _scroll_text_windows(text: str) -> None:  # pragma: no cover - Windows only
                 top = max(0, top - 1)
             elif key == "P":  # Down arrow
                 top = min(len(lines) - height, top + 1)
-        elif key.lower() == "q":
+        elif key.lower() == exit_letter.lower():
             break
 
 
