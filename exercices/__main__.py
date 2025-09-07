@@ -1,11 +1,12 @@
 """Point d'entrée pour le programme exercices."""
 
-from . import anglais_hello_world, hist_test, math_addition
+from . import anglais_hello_world, hist_test, math_addition, physique_changements_etats
 
 EXERCICES = [
     ("anglais_hello_world", anglais_hello_world.main),
     ("math_addition", math_addition.main),
     ("hist_test", hist_test.main),
+    ("physique_changements_etats", physique_changements_etats.main),
 ]
 
 
