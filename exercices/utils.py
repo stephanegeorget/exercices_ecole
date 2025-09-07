@@ -6,6 +6,7 @@ such as displaying long pieces of text in a scrollable box.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import pydoc
 
@@ -23,9 +24,12 @@ def scroll_text(text: str) -> None:
         The content to display.
     """
 
+    env = {**os.environ, "LESSCHARSET": "utf-8"}
     try:
         # ``-R`` preserves raw control characters (colours).
-        subprocess.run(["less", "-R"], input=text, text=True, check=True)
+        subprocess.run(
+            ["less", "-R"], input=text.encode("utf-8"), check=True, env=env
+        )
     except (FileNotFoundError, subprocess.CalledProcessError):
         pydoc.pager(text)
 
