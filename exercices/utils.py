@@ -6,15 +6,26 @@ such as displaying long pieces of text in a scrollable box.
 
 from __future__ import annotations
 
+import os
+import shutil
+from typing import List
+
 import pydoc
+try:  # ``msvcrt`` is only available on Windows
+    import msvcrt
+except Exception:  # pragma: no cover - import will fail on non-Windows
+    msvcrt = None  # type: ignore[assignment]
 
 
 def scroll_text(text: str) -> None:
     """Display ``text`` inside a scrollable pager.
 
-    The implementation relies solely on :func:`pydoc.pager` so that the
-    behaviour is consistent across platforms.  If a pager cannot be
-    launched, the text is simply printed to the terminal.
+    On Windows, :mod:`pydoc` may fail to display Unicode characters such
+    as emojis because the pager it invokes cannot handle UTF-8.  To make
+    sure the colourful lessons render correctly, a small custom pager is
+    used when running on Windows.  It supports scrolling with the arrow
+    keys and exiting with ``q``.  On other platforms :func:`pydoc.pager`
+    is still used to benefit from the user's configured pager.
 
     Parameters
     ----------
@@ -22,10 +33,41 @@ def scroll_text(text: str) -> None:
         The content to display.
     """
 
-    try:
-        pydoc.pager(text)
-    except Exception:
-        print(text)
+    if os.name == "nt" and msvcrt is not None:  # pragma: no cover - can't test on Linux
+        _scroll_text_windows(text)
+    else:  # fall back to pydoc's pager elsewhere
+        try:
+            pydoc.pager(text)
+        except Exception:
+            print(text)
+
+
+def _scroll_text_windows(text: str) -> None:  # pragma: no cover - Windows only
+    """Simple pager for Windows that keeps emojis intact."""
+
+    lines: List[str] = text.splitlines()
+    height = shutil.get_terminal_size().lines - 1
+    top = 0
+
+    def clear() -> None:
+        os.system("cls")
+
+    while True:
+        clear()
+        for line in lines[top : top + height]:
+            print(line)
+
+        key = msvcrt.getwch()
+        # Arrow keys are reported as a two-character sequence starting
+        # with ``\xe0``.  The second character identifies the direction.
+        if key in ("\x00", "\xe0"):
+            key = msvcrt.getwch()
+            if key == "H":  # Up arrow
+                top = max(0, top - 1)
+            elif key == "P":  # Down arrow
+                top = min(len(lines) - height, top + 1)
+        elif key.lower() == "q":
+            break
 
 
 def wait_for_letter(letter: str, prompt: str) -> None:
