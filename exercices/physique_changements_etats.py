@@ -1,22 +1,42 @@
 """Leçon et quiz sur les changements d'état de la matière."""
 
+from .utils import scroll_text, wait_for_letter
 
-def main():
+
+GREEN = "\033[92m"
+RED = "\033[91m"
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+
+def main() -> None:
     """Présente la leçon puis un quiz corrigé."""
-    # Leçon introductive
-    print("Changements d'état de la matière\n")
-    print("1. Fusion : passage de l'état solide à l'état liquide. \n"
-          "   Exemple : la glace qui devient de l'eau." )
-    print("2. Solidification : passage du liquide au solide. \n"
-          "   Exemple : l'eau qui gèle dans le congélateur.")
-    print("3. Vaporisation : passage du liquide au gaz. \n"
-          "   Exemple : l'eau qui bout devient de la vapeur.")
-    print("4. Condensation : passage du gaz au liquide. \n"
-          "   Exemple : la vapeur d'eau qui forme des gouttes sur une vitre froide.")
-    print("5. Sublimation : passage direct du solide au gaz sans devenir liquide. \n"
-          "   Exemple : la glace sèche qui disparaît en fumée.")
-    print("6. Condensation solide : passage direct du gaz au solide. \n"
-          "   Exemple : le givre qui se forme sur une fenêtre en hiver.\n")
+
+    lesson = f"""
+{CYAN}{BOLD}🌡️  Changements d'état de la matière  🌡️{RESET}
+
+1. ❄️  {BOLD}Fusion{RESET}            →  solide  →  liquide
+   Exemple : la glace qui devient de l'eau.
+
+2. 🧊  {BOLD}Solidification{RESET}    →  liquide  →  solide
+   Exemple : l'eau qui gèle dans le congélateur.
+
+3. 💧  {BOLD}Vaporisation{RESET}      →  liquide  →  gaz
+   Exemple : l'eau qui bout devient de la vapeur.
+
+4. ☁️  {BOLD}Condensation{RESET}      →  gaz     →  liquide
+   Exemple : la vapeur d'eau qui forme des gouttes sur une vitre froide.
+
+5. 🎈  {BOLD}Sublimation{RESET}       →  solide  →  gaz
+   Exemple : la glace sèche qui disparaît en fumée.
+
+6. ✨  {BOLD}Condensation solide{RESET} →  gaz     →  solide
+   Exemple : le givre qui se forme sur une fenêtre en hiver.
+"""
+
+    scroll_text(lesson)
+    wait_for_letter("q", "Tape 'q' pour passer au quiz : ")
 
     # Définition des questions du quiz
     questions = [
@@ -85,19 +105,19 @@ def main():
         correct = q["answer"]
         correct_text = q["choices"][correct]
         if student == correct:
-            print("Exact !")
+            print(f"{GREEN}Exact ! ✅{RESET}")
             score += 1
         else:
-            print(f"Non, la bonne réponse était {correct + 1}. {correct_text}")
+            print(f"{RED}Non, la bonne réponse était {correct + 1}. {correct_text} ❌{RESET}")
 
     total = len(questions)
-    print(f"\nScore final : {score}/{total}")
+    print(f"\n{BOLD}Score final : {score}/{total}{RESET}")
     if score == total:
-        print("Excellent travail ! Tu maîtrises parfaitement les changements d'état.")
+        print(f"{GREEN}Excellent travail ! Tu maîtrises parfaitement les changements d'état. 🥳{RESET}")
     elif score >= total / 2:
-        print("Bravo ! Continue à réviser pour progresser encore.")
+        print(f"{CYAN}Bravo ! Continue à réviser pour progresser encore. 👍{RESET}")
     else:
-        print("Courage, relis la leçon et essaie à nouveau !")
+        print(f"{RED}Courage, relis la leçon et essaie à nouveau ! 💪{RESET}")
 
 
 if __name__ == "__main__":
