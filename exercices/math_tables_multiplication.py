@@ -1,8 +1,13 @@
-"""Leçon et quiz sur les tables de multiplication de 1 à 9."""
+"""Leçon et quiz interactif sur les tables de multiplication de 1 à 9."""
+
+from __future__ import annotations
+
+import random
 
 
-def main():
-    """Présente les tables de multiplication puis un quiz corrigé."""
+def afficher_tables() -> None:
+    """Affiche les tables de multiplication de 1 à 9."""
+
     print("Tables de multiplication de 1 à 9\n")
     for i in range(1, 10):
         print(f"Table de {i} :")
@@ -10,91 +15,76 @@ def main():
             print(f"  {i} x {j} = {i * j}")
         print()
 
-    questions = [
-        {
-            "question": "Combien font 3 x 4 ?",
-            "choices": ["7", "12", "14"],
-            "answer": 1,
-        },
-        {
-            "question": "Combien font 7 x 8 ?",
-            "choices": ["54", "56", "64"],
-            "answer": 1,
-        },
-        {
-            "question": "Combien font 9 x 9 ?",
-            "choices": ["81", "72", "99"],
-            "answer": 0,
-        },
-        {
-            "question": "Combien font 6 x 7 ?",
-            "choices": ["42", "36", "48"],
-            "answer": 0,
-        },
-        {
-            "question": "Combien font 5 x 6 ?",
-            "choices": ["30", "28", "32"],
-            "answer": 0,
-        },
-        {
-            "question": "Combien font 4 x 8 ?",
-            "choices": ["32", "36", "30"],
-            "answer": 0,
-        },
-        {
-            "question": "Combien font 2 x 9 ?",
-            "choices": ["18", "16", "20"],
-            "answer": 0,
-        },
-        {
-            "question": "Combien font 3 x 7 ?",
-            "choices": ["20", "21", "24"],
-            "answer": 1,
-        },
-        {
-            "question": "Combien font 8 x 8 ?",
-            "choices": ["64", "72", "62"],
-            "answer": 0,
-        },
-        {
-            "question": "Combien font 9 x 5 ?",
-            "choices": ["40", "45", "50"],
-            "answer": 1,
-        },
-    ]
 
-    student_answers = [1, 0, 0, 0, 0, 0, 1, 1, 0, 1]
+def generer_propositions(resultat: int) -> list[int]:
+    """Retourne trois propositions dont une correcte."""
 
-    print("Quiz : réponds mentalement à chaque question.")
-    for i, q in enumerate(questions, start=1):
-        print(f"\nQuestion {i}: {q['question']}")
-        for j, choice in enumerate(q["choices"], start=1):
-            print(f"  {j}. {choice}")
+    autres = [n for n in range(1, 82) if n != resultat]
+    propositions = random.sample(autres, 2) + [resultat]
+    random.shuffle(propositions)
+    return propositions
 
-    print("\nCorrection :")
+
+def poser_question(table: int, multiplicateur: int) -> bool:
+    """Pose une question et renvoie True si la réponse est correcte."""
+
+    resultat = table * multiplicateur
+    propositions = generer_propositions(resultat)
+    print(f"\nCombien font {table} x {multiplicateur} ?")
+    for i, choix in enumerate(propositions, start=1):
+        print(f"  {i}. {choix}")
+    reponse = input("Votre réponse : ")
+    try:
+        index = int(reponse) - 1
+    except ValueError:
+        index = -1
+    if 0 <= index < 3 and propositions[index] == resultat:
+        print("✔️ Bonne réponse !")
+        return True
+    print(f"❌ Mauvaise réponse. La bonne réponse était {resultat}.")
+    return False
+
+
+def entrainer_table(table: int) -> None:
+    """Entraîne l'utilisateur sur la table donnée."""
+
+    while True:
+        mode = input(
+            "Choisis le mode : 1. ordre séquentiel 2. ordre aléatoire\nVotre choix : "
+        ).strip()
+        if mode in {"1", "2"}:
+            break
+        print("Choix invalide.\n")
+
+    multiplicateurs = list(range(1, 10))
+    if mode == "2":
+        random.shuffle(multiplicateurs)
+
     score = 0
-    for i, q in enumerate(questions, start=1):
-        student = student_answers[i - 1]
-        correct = q["answer"]
-        student_text = q["choices"][student]
-        correct_text = q["choices"][correct]
-        if student == correct:
-            print(f"Question {i}: {student + 1}. {student_text} ✔️")
+    for m in multiplicateurs:
+        if poser_question(table, m):
             score += 1
-        else:
-            print(
-                f"Question {i}: {student + 1}. {student_text} ❌ (bonne réponse : {correct + 1}. {correct_text})"
-            )
 
-    total = len(questions)
-    print(f"\nScore final : {score}/{total}")
-    if score == total:
-        print("Excellent travail ! Tu maîtrises parfaitement les tables de multiplication.")
-    elif score >= total / 2:
-        print("Bravo ! Continue à t'entraîner pour progresser encore.")
-    else:
-        print("Courage, révise les tables et essaie à nouveau !")
+    print(f"\nScore final : {score}/9")
+
+
+def main() -> None:
+    """Présente les tables puis permet de s'entraîner."""
+
+    afficher_tables()
+    while True:
+        choix = input("Quelle table veux-tu pratiquer ? (1-9) ").strip()
+        try:
+            table = int(choix)
+        except ValueError:
+            table = 0
+        if 1 <= table <= 9:
+            break
+        print("Choix invalide.\n")
+
+    entrainer_table(table)
 
 
 if __name__ == "__main__":
     main()
+
