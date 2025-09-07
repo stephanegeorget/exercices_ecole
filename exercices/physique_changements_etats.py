@@ -41,52 +41,52 @@ def main() -> None:
     # Définition des questions du quiz
     questions = [
         {
-            "question": "Le passage de l'état solide à l'état liquide s'appelle...",
+            "question": "Le passage de l'état solide 🧊 à l'état liquide 💧 s'appelle...",
             "choices": ["la fusion", "la solidification", "la vaporisation"],
             "answer": 0,
         },
         {
-            "question": "Le passage de l'état liquide à l'état solide s'appelle...",
+            "question": "Le passage de l'état liquide 💧 à l'état solide 🧊 s'appelle...",
             "choices": ["la fusion", "la condensation", "la solidification"],
             "answer": 2,
         },
         {
-            "question": "Le passage de l'état liquide à l'état gazeux s'appelle...",
+            "question": "Le passage de l'état liquide 💧 à l'état gazeux ☁️ s'appelle...",
             "choices": ["la sublimation", "la vaporisation", "la condensation"],
             "answer": 1,
         },
         {
-            "question": "Le passage de l'état gazeux à l'état liquide s'appelle...",
+            "question": "Le passage de l'état gazeux ☁️ à l'état liquide 💧 s'appelle...",
             "choices": ["la condensation", "la solidification", "la fusion"],
             "answer": 0,
         },
         {
-            "question": "Le passage direct du solide au gaz s'appelle...",
+            "question": "Le passage direct du solide 🧊 au gaz ☁️ s'appelle...",
             "choices": ["la condensation", "la vaporisation", "la sublimation"],
             "answer": 2,
         },
         {
-            "question": "Le passage direct du gaz au solide s'appelle...",
+            "question": "Le passage direct du gaz ☁️ au solide 🧊 s'appelle...",
             "choices": ["la fusion", "la condensation solide", "la sublimation"],
             "answer": 1,
         },
         {
-            "question": "La glace qui fond dans un verre d'eau est un exemple de...",
+            "question": "La glace 🧊 qui fond dans un verre d'eau est un exemple de...",
             "choices": ["fusion", "condensation solide", "vaporisation"],
             "answer": 0,
         },
         {
-            "question": "La buée qui se forme sur un miroir après une douche est due à...",
+            "question": "La buée 💧 qui se forme sur un miroir après une douche est due à...",
             "choices": ["la condensation", "la sublimation", "la fusion"],
             "answer": 0,
         },
         {
-            "question": "Quand on met de l'eau au congélateur, l'eau subit...",
+            "question": "Quand on met de l'eau 💧 au congélateur, l'eau subit...",
             "choices": ["la vaporisation", "la solidification", "la sublimation"],
             "answer": 1,
         },
         {
-            "question": "La formation de givre sur un pare-brise par temps froid est un exemple de...",
+            "question": "La formation de givre ❄️ sur un pare-brise par temps froid est un exemple de...",
             "choices": ["condensation solide", "vaporisation", "fusion", "condensation"],
             "answer": 0,
         },
