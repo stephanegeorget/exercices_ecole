@@ -72,29 +72,23 @@ def main():
         },
     ]
 
-    # Réponses de l'élève pour l'exemple (0 -> premier choix, 1 -> deuxième, ...)
-    student_answers = [0, 2, 1, 2, 2, 1, 0, 0, 0, 0]
-
-    print("Quiz : réponds mentalement à chaque question.")
+    print("Quiz : réponds à chaque question en choisissant le numéro de la bonne réponse.")
+    score = 0
     for i, q in enumerate(questions, start=1):
         print(f"\nQuestion {i}: {q['question']}")
         for j, choice in enumerate(q["choices"], start=1):
             print(f"  {j}. {choice}")
-
-    print("\nCorrection :")
-    score = 0
-    for i, q in enumerate(questions, start=1):
-        student = student_answers[i - 1]
+        try:
+            student = int(input("Votre réponse : ")) - 1
+        except ValueError:
+            student = -1
         correct = q["answer"]
-        student_text = q["choices"][student]
         correct_text = q["choices"][correct]
         if student == correct:
-            print(f"Question {i}: {student + 1}. {student_text} ✔️")
+            print("Exact !")
             score += 1
         else:
-            print(
-                f"Question {i}: {student + 1}. {student_text} ❌ (bonne réponse : {correct + 1}. {correct_text})"
-            )
+            print(f"Non, la bonne réponse était {correct + 1}. {correct_text}")
 
     total = len(questions)
     print(f"\nScore final : {score}/{total}")

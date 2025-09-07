@@ -12,17 +12,21 @@ EXERCICES = [
 
 def main():
     """Affiche un menu et lance l'exercice choisi."""
-    print("Choisissez un exercice :")
-    for index, (name, _) in enumerate(EXERCICES, start=1):
-        print(f"{index}. {name}")
-    choice = input("Votre choix : ")
-    try:
-        index = int(choice) - 1
-        _, func = EXERCICES[index]
-    except (ValueError, IndexError):
-        print("Choix invalide")
-        return
-    func()
+    while True:
+        print("Choisissez un exercice :")
+        for index, (name, _) in enumerate(EXERCICES, start=1):
+            print(f"{index}. {name}")
+        print("0. Quitter")
+        choice = input("Votre choix : ")
+        if choice == "0":
+            break
+        try:
+            index = int(choice) - 1
+            _, func = EXERCICES[index]
+        except (ValueError, IndexError):
+            print("Choix invalide")
+            continue
+        func()
 
 
 if __name__ == "__main__":
