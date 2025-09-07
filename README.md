@@ -2,7 +2,10 @@
 
 Ce dépôt contient un programme `exercices` permettant d'exécuter différents exercices.
 
-Pour l'instant, un seul exercice est disponible : `anglais_hello_world` qui affiche `hello world!`.
+Le menu propose plusieurs exercices :
+- `anglais_hello_world` affiche `hello world!`
+- `math_addition` affiche `1+1=2`
+- `hist_test` affiche `La préhistoire c'est ce qu'il y a avant l'histoire.`
 
 ## Exécuter
 
