@@ -20,7 +20,7 @@ def main() -> None:
    Exemple : la glace qui devient de l'eau.
 
 2. 🧊  {BOLD}Solidification{RESET}    →  liquide  →  solide
-   Exemple : l'eau qui gèle dans le congélateur.
+   Exemple : l'eau qui gèle dans le congélateur 🧊.
 
 3. 💧  {BOLD}Vaporisation{RESET}      →  liquide  →  gaz
    Exemple : l'eau qui bout devient de la vapeur.
