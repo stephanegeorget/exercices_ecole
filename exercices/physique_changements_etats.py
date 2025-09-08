@@ -1,6 +1,6 @@
 """Leçon et quiz sur les changements d'état de la matière."""
 
-from .utils import scroll_text
+from .utils import show_lesson
 
 
 GREEN = "\033[92m"
@@ -35,7 +35,7 @@ def main() -> None:
    Exemple : le givre qui se forme sur une fenêtre en hiver.
 """
 
-    scroll_text(lesson, hint="Tape 'q' pour passer au quiz")
+    show_lesson(lesson)
 
     # Définition des questions du quiz
     questions = [

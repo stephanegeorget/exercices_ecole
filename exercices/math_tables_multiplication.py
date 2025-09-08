@@ -1,88 +1,64 @@
-"""Leçon et quiz interactif sur les tables de multiplication de 1 à 9."""
+"""Tables de multiplication avec quiz interactif."""
 
-from __future__ import annotations
-
-import random
+from .utils import show_lesson
 
 
-def afficher_tables() -> None:
-    """Affiche les tables de multiplication de 1 à 9."""
-
-    print("Tables de multiplication de 1 à 9\n")
-    for i in range(1, 10):
-        print(f"Table de {i} :")
-        for j in range(1, 10):
-            print(f"  {i} x {j} = {i * j}")
-        print()
+LETTERS = ["a", "b", "c"]
 
 
-def generer_propositions(resultat: int) -> list[int]:
-    """Retourne trois propositions dont une correcte."""
+def multiplication_tables() -> str:
+    """Return the multiplication tables from 1 to 10."""
 
-    autres = [n for n in range(1, 82) if n != resultat]
-    propositions = random.sample(autres, 2) + [resultat]
-    random.shuffle(propositions)
-    return propositions
-
-
-def poser_question(table: int, multiplicateur: int) -> bool:
-    """Pose une question et renvoie True si la réponse est correcte."""
-
-    resultat = table * multiplicateur
-    propositions = generer_propositions(resultat)
-    print(f"\nCombien font {table} x {multiplicateur} ?")
-    for i, choix in enumerate(propositions, start=1):
-        print(f"  {i}. {choix}")
-    reponse = input("Votre réponse : ")
-    try:
-        index = int(reponse) - 1
-    except ValueError:
-        index = -1
-    if 0 <= index < 3 and propositions[index] == resultat:
-        print("✔️ Bonne réponse !")
-        return True
-    print(f"❌ Mauvaise réponse. La bonne réponse était {resultat}.")
-    return False
-
-
-def entrainer_table(table: int) -> None:
-    """Entraîne l'utilisateur sur la table donnée."""
-
-    while True:
-        mode = input(
-            "Choisis le mode : 1. ordre séquentiel 2. ordre aléatoire\nVotre choix : "
-        ).strip()
-        if mode in {"1", "2"}:
-            break
-        print("Choix invalide.\n")
-
-    multiplicateurs = list(range(1, 10))
-    if mode == "2":
-        random.shuffle(multiplicateurs)
-
-    score = 0
-    for m in multiplicateurs:
-        if poser_question(table, m):
-            score += 1
-
-    print(f"\nScore final : {score}/9")
+    lines = []
+    for i in range(1, 11):
+        lines.append(f"Table de {i}")
+        for j in range(1, 11):
+            lines.append(f"{i} × {j} = {i * j}")
+        lines.append("")
+    return "\n".join(lines)
 
 
 def main() -> None:
-    """Présente les tables puis permet de s'entraîner."""
+    """Affiche les tables de multiplication puis un quiz."""
 
-    afficher_tables()
-    while True:
-        choix = input("Quelle table veux-tu pratiquer ? (1-9) ").strip()
-        try:
-            table = int(choix)
-        except ValueError:
-            table = 0
-        if 1 <= table <= 9:
-            break
-        print("Choix invalide.\n")
+    show_lesson(multiplication_tables())
 
-    entrainer_table(table)
+    questions = [
+        {
+            "question": "Combien font 3 × 4 ?",
+            "choices": ["7", "12", "9"],
+            "answer": 1,
+        },
+        {
+            "question": "Combien font 5 × 6 ?",
+            "choices": ["11", "30", "28"],
+            "answer": 1,
+        },
+        {
+            "question": "Combien font 9 × 8 ?",
+            "choices": ["72", "81", "64"],
+            "answer": 0,
+        },
+    ]
+
+    print("Quiz : réponds en tapant la lettre de la bonne réponse.")
+    score = 0
+    for i, q in enumerate(questions, start=1):
+        print(f"\nQuestion {i}: {q['question']}")
+        for letter, choice in zip(LETTERS, q["choices"]):
+            print(f"  {letter}. {choice}")
+        student = input("Votre réponse : ").strip().lower()
+        index = LETTERS.index(student) if student in LETTERS else -1
+        correct = q["answer"]
+        correct_text = q["choices"][correct]
+        if index == correct:
+            print("Exact ! ✅")
+            score += 1
+        else:
+            print(f"Non, la bonne réponse était {LETTERS[correct]}. {correct_text} ❌")
+
+    total = len(questions)
+    print(f"\nScore final : {score}/{total}")
 
 
 if __name__ == "__main__":
