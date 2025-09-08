@@ -55,15 +55,26 @@ def _generate_choices(n: int, m: int, hard_mode: bool) -> list[int]:
     return choices
 
 
-def _generate_question(hard_mode: bool) -> tuple[str, list[int], int]:
-    """Return a question, choices and index of the correct answer."""
+def _generate_question(
+    hard_mode: bool, table: int | None = None
+) -> tuple[str, list[int], int]:
+    """Return a question, choices and index of the correct answer.
 
-    if hard_mode:
-        n = random.randint(2, 9)
-        m = random.randint(2, 9)
+    ``table`` constrains the first operand to the chosen multiplication
+    table. ``None`` keeps the existing behaviour with fully random
+    operands.
+    """
+
+    if table is not None:
+        n = table
+        m = random.randint(2, 9) if hard_mode else random.randint(1, 10)
     else:
-        n = random.randint(1, 10)
-        m = random.randint(1, 10)
+        if hard_mode:
+            n = random.randint(2, 9)
+            m = random.randint(2, 9)
+        else:
+            n = random.randint(1, 10)
+            m = random.randint(1, 10)
     question = f"Combien font {n} × {m} ?"
     choices = _generate_choices(n, m, hard_mode)
     answer_index = choices.index(n * m)
@@ -74,6 +85,18 @@ def main() -> None:
     """Affiche les tables de multiplication puis un quiz."""
 
     show_lesson(multiplication_tables())
+    print("Choisis le mode de quiz :")
+    print("  1. Toutes les tables (aléatoire)")
+    print("  2. Une table en particulier")
+    choice = input("Votre choix : ").strip()
+    table_choice: int | None = None
+    if choice == "2":
+        while True:
+            answer = input("Quelle table veux-tu réviser (1-10) ? ").strip()
+            if answer.isdigit() and 1 <= int(answer) <= 10:
+                table_choice = int(answer)
+                break
+            print("Veuillez entrer un nombre entre 1 et 10.")
 
     previous = get_scores("math_tables_multiplication", limit=5)
     hard_mode = bool(previous) and sum(previous) / len(previous) > 75
@@ -82,7 +105,7 @@ def main() -> None:
     score = 0
     total = 20
     for i in range(1, total + 1):
-        question, choices, answer = _generate_question(hard_mode)
+        question, choices, answer = _generate_question(hard_mode, table_choice)
         letters = LETTERS[: len(choices)]
         print(f"\nQuestion {i}: {question}")
         for letter, choice in zip(letters, choices):
