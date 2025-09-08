@@ -1,6 +1,7 @@
 """Leçon et quiz sur les changements d'état de la matière."""
 
 from .utils import show_lesson
+from .logger import log_result
 
 
 GREEN = "\033[92m"
@@ -117,6 +118,7 @@ def main() -> None:
         print(f"{CYAN}Bravo ! Continue à réviser pour progresser encore. 👍{RESET}")
     else:
         print(f"{RED}Courage, relis la leçon et essaie à nouveau ! 💪{RESET}")
+    log_result("physique_changements_etats", score / total * 100)
 
 
 if __name__ == "__main__":
