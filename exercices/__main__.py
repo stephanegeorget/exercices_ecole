@@ -3,14 +3,12 @@
 from . import (
     anglais_hello_world,
     hist_test,
-    math_addition,
     math_tables_multiplication,
     physique_changements_etats,
 )
 
 EXERCICES = [
     ("anglais_hello_world", anglais_hello_world.main),
-    ("math_addition", math_addition.main),
     ("hist_test", hist_test.main),
     ("physique_changements_etats", physique_changements_etats.main),
     ("math_tables_multiplication", math_tables_multiplication.main),

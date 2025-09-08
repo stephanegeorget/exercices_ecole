@@ -84,18 +84,8 @@ def _scroll_text_windows(text: str, exit_letter: str, hint: str) -> None:  # pra
             break
 
 
-def wait_for_letter(letter: str, prompt: str) -> None:
-    """Block until ``letter`` is typed by the user.
+def show_lesson(text: str) -> None:
+    """Display ``text`` in a pager with a standard quiz hint."""
 
-    Parameters
-    ----------
-    letter:
-        The expected letter (case-insensitive).
-    prompt:
-        Message displayed to the user.
-    """
-
-    while True:
-        if input(prompt).strip().lower() == letter.lower():
-            break
+    scroll_text(text, hint="Tape 'q' pour passer au quiz")
 
