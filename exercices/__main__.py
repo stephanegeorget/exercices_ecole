@@ -5,6 +5,7 @@ from . import (
     hist_test,
     math_tables_multiplication,
     physique_changements_etats,
+    geometrie_notation,
 )
 
 EXERCICES = [
@@ -12,6 +13,7 @@ EXERCICES = [
     ("hist_test", hist_test.main),
     ("physique_changements_etats", physique_changements_etats.main),
     ("math_tables_multiplication", math_tables_multiplication.main),
+    ("geometrie_notation", geometrie_notation.main),
 ]
 
 
