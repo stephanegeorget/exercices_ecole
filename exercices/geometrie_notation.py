@@ -2,6 +2,7 @@
 
 from .utils import show_lesson
 from .logger import log_result
+import random
 
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -94,6 +95,12 @@ Exemple d'intersection :
             "answer": 0,
         },
     ]
+
+    # Shuffle answer order for each question
+    for q in questions:
+        correct_choice = q["choices"][q["answer"]]
+        random.shuffle(q["choices"])
+        q["answer"] = q["choices"].index(correct_choice)
 
     print("Quiz : quelle est la bonne notation ?")
     score = 0
