@@ -101,7 +101,9 @@ def main() -> None:
     previous = get_scores("math_tables_multiplication", limit=5)
     hard_mode = bool(previous) and sum(previous) / len(previous) > 75
 
-    print("Quiz : réponds en tapant la lettre de la bonne réponse.")
+    print(
+        "Quiz : réponds en tapant la lettre ou le nombre de la bonne réponse."
+    )
     score = 0
     total = 20
     for i in range(1, total + 1):
@@ -111,7 +113,12 @@ def main() -> None:
         for letter, choice in zip(letters, choices):
             print(f"  {letter}. {choice}")
         student = input("Votre réponse : ").strip().lower()
-        index = letters.index(student) if student in letters else -1
+        if student in letters:
+            index = letters.index(student)
+        elif student.isdigit() and int(student) in choices:
+            index = choices.index(int(student))
+        else:
+            index = -1
         correct_text = choices[answer]
         if index == answer:
             print("Exact ! ✅")
