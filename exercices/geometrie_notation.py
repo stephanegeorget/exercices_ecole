@@ -1,5 +1,8 @@
 """Leçon et quiz sur la notation des segments, droites et demi-droites."""
 
+# Nom lisible de l'exercice pour le menu principal
+DISPLAY_NAME = "Géométrie : Notations des segments et droites"
+
 from .utils import show_lesson
 from .logger import log_result
 import random

@@ -1,5 +1,8 @@
 """Module anglais_hello_world - affiche Hello World"""
 
+# Nom lisible de l'exercice pour le menu principal
+DISPLAY_NAME = "Anglais : Hello World"
+
 from .utils import scroll_text
 from .logger import log_result
 

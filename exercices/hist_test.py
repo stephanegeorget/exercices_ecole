@@ -1,3 +1,8 @@
+"""Petit exercice d'histoire"""
+
+# Nom lisible de l'exercice pour le menu principal
+DISPLAY_NAME = "Histoire : La préhistoire"
+
 from .utils import scroll_text
 from .logger import log_result
 

@@ -1,5 +1,8 @@
 """Leçon et quiz sur les changements d'état de la matière."""
 
+# Nom lisible de l'exercice pour le menu principal
+DISPLAY_NAME = "Physique : Changements d'état"
+
 from .utils import show_lesson
 from .logger import log_result
 
