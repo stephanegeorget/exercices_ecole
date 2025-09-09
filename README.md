@@ -9,6 +9,8 @@ Le menu propose plusieurs exercices :
 - `math_tables_multiplication` propose une leçon et un quiz interactif pour pratiquer une table de multiplication.
 - `geometrie_notation` propose une leçon et un quiz sur les segments, droites et demi-droites.
 
+Le menu propose également une option pour mettre à jour le logiciel ; elle exécute un `git pull` puis redémarre le programme.
+
 ## Exécuter
 
 ```bash
