@@ -2,6 +2,9 @@ from __future__ import annotations
 
 """Tables de multiplication avec quiz interactif."""
 
+# Nom lisible de l'exercice pour le menu principal
+DISPLAY_NAME = "Maths : Tables de multiplication"
+
 import random
 
 from .logger import get_scores, log_result

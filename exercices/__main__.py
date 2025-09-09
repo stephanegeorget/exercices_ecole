@@ -13,12 +13,15 @@ from . import (
     geometrie_notation,
 )
 
+# Les modules d'exercices sont listés ici pour apparaître dans le menu.
+# Chaque module définit sa propre chaîne ``DISPLAY_NAME`` utilisée pour
+# afficher un intitulé lisible par un humain.
 EXERCICES = [
-    ("anglais_hello_world", anglais_hello_world.main),
-    ("hist_test", hist_test.main),
-    ("physique_changements_etats", physique_changements_etats.main),
-    ("math_tables_multiplication", math_tables_multiplication.main),
-    ("geometrie_notation", geometrie_notation.main),
+    anglais_hello_world,
+    hist_test,
+    physique_changements_etats,
+    math_tables_multiplication,
+    geometrie_notation,
 ]
 
 
@@ -33,8 +36,8 @@ def main():
     """Affiche un menu et lance l'exercice choisi."""
     while True:
         print("Choisissez un exercice :")
-        for index, (name, _) in enumerate(EXERCICES, start=1):
-            print(f"{index}. {name}")
+        for index, module in enumerate(EXERCICES, start=1):
+            print(f"{index}. {module.DISPLAY_NAME}")
         print(f"{len(EXERCICES) + 1}. Mettre à jour le logiciel")
         print("0. Quitter")
         choice = input("Votre choix : ")
@@ -45,11 +48,11 @@ def main():
             return
         try:
             index = int(choice) - 1
-            _, func = EXERCICES[index]
+            module = EXERCICES[index]
         except (ValueError, IndexError):
             print("Choix invalide")
             continue
-        func()
+        module.main()
 
 
 if __name__ == "__main__":
