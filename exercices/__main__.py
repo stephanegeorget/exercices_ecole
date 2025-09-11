@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import (
     anglais_hello_world,
+    anglais_jours_semaine,
     hist_test,
     physique_changements_etats,
     physique_proprietes_eau_liquide,
@@ -19,6 +20,7 @@ from . import (
 # afficher un intitulé lisible par un humain.
 EXERCICES = [
     anglais_hello_world,
+    anglais_jours_semaine,
     hist_test,
     physique_changements_etats,
     physique_proprietes_eau_liquide,
