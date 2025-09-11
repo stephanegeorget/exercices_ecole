@@ -8,8 +8,9 @@ from pathlib import Path
 from . import (
     anglais_hello_world,
     hist_test,
-    math_tables_multiplication,
     physique_changements_etats,
+    physique_proprietes_eau_liquide,
+    math_tables_multiplication,
     geometrie_notation,
 )
 
@@ -20,6 +21,7 @@ EXERCICES = [
     anglais_hello_world,
     hist_test,
     physique_changements_etats,
+    physique_proprietes_eau_liquide,
     math_tables_multiplication,
     geometrie_notation,
 ]
