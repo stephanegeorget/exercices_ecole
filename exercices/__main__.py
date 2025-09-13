@@ -13,6 +13,7 @@ from . import (
     physique_proprietes_eau_liquide,
     math_tables_multiplication,
     geometrie_notation,
+    star_wars_quiz,
 )
 
 # Les modules d'exercices sont listés ici pour apparaître dans le menu.
@@ -26,6 +27,7 @@ EXERCICES = [
     physique_proprietes_eau_liquide,
     math_tables_multiplication,
     geometrie_notation,
+    star_wars_quiz,
 ]
 
 
