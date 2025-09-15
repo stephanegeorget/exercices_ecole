@@ -10,6 +10,7 @@ Le menu propose plusieurs exercices :
 - `physique_proprietes_eau_liquide` propose une leçon et un quiz sur quelques propriétés de l'eau liquide.
 - `math_tables_multiplication` propose une leçon et un quiz interactif pour pratiquer une table de multiplication.
 - `geometrie_notation` propose une leçon et un quiz sur les segments, droites et demi-droites.
+- `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
 
 Le menu propose également une option pour mettre à jour le logiciel ; elle exécute un `git pull` puis redémarre le programme.
 

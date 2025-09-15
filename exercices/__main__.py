@@ -14,6 +14,7 @@ from . import (
     math_tables_multiplication,
     geometrie_notation,
     star_wars_quiz,
+    sciences_vivant_non_vivant,
 )
 
 # Les modules d'exercices sont listés ici pour apparaître dans le menu.
@@ -28,6 +29,7 @@ EXERCICES = [
     math_tables_multiplication,
     geometrie_notation,
     star_wars_quiz,
+    sciences_vivant_non_vivant,
 ]
 
 
