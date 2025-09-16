@@ -38,9 +38,25 @@ EXERCICES = [
 
 
 def update_and_restart():
-    """Met à jour le dépôt via git pull puis redémarre le programme."""
+    """Met à jour le dépôt et ses dépendances, puis redémarre le programme."""
     repo_dir = Path(__file__).resolve().parent.parent
     subprocess.run(["git", "pull"], cwd=repo_dir, check=False)
+
+    requirements_file = repo_dir / "requirements.txt"
+    if requirements_file.exists():
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "-r",
+                str(requirements_file),
+            ],
+            check=False,
+        )
+
     os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
