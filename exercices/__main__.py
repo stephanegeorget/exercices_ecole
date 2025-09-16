@@ -13,6 +13,7 @@ from . import (
     physique_proprietes_eau_liquide,
     math_tables_multiplication,
     geometrie_notation,
+    musique_cest_quoi,
     star_wars_quiz,
     sciences_vivant_non_vivant,
 )
@@ -28,6 +29,7 @@ EXERCICES = [
     physique_proprietes_eau_liquide,
     math_tables_multiplication,
     geometrie_notation,
+    musique_cest_quoi,
     star_wars_quiz,
     sciences_vivant_non_vivant,
 ]
