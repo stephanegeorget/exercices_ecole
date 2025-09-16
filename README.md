@@ -13,7 +13,17 @@ Le menu propose plusieurs exercices :
 - `musique_cest_quoi` propose une leçon colorée et un quiz pour découvrir la portée, les notes et les rythmes.
 - `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
 
-Le menu propose également une option pour mettre à jour le logiciel ; elle exécute un `git pull` puis redémarre le programme.
+Le menu propose également une option pour mettre à jour le logiciel. Elle exécute `git pull`, met à jour les dépendances Python, puis redémarre le programme.
+
+## Première installation
+
+Avant la première exécution, installez les dépendances optionnelles décrites dans `requirements.txt` :
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Sur Windows cette commande installe automatiquement `windows-curses`, nécessaire pour l'exercice interactif de musique.
 
 ## Exécuter
 
