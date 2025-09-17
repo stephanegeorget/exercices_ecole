@@ -8,6 +8,7 @@ from pathlib import Path
 from . import (
     anglais_hello_world,
     anglais_jours_semaine,
+    anglais_alphabet_couleurs,
     hist_test,
     musique_notes_portee,
     physique_changements_etats,
@@ -25,6 +26,7 @@ from . import (
 EXERCICES = [
     anglais_hello_world,
     anglais_jours_semaine,
+    anglais_alphabet_couleurs,
     hist_test,
     musique_notes_portee,
     physique_changements_etats,

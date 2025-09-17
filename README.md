@@ -5,6 +5,7 @@ Ce dépôt contient un programme `exercices` permettant d'exécuter différents 
 Le menu propose plusieurs exercices :
 - `anglais_hello_world` affiche `hello world!`
 - `anglais_jours_semaine` propose une leçon et un quiz pour apprendre les jours de la semaine en anglais et leurs origines mythologiques ou célestes.
+- `anglais_alphabet_couleurs` propose une leçon et plusieurs exercices pour reconnaître l'alphabet à l'oral, écrire les couleurs et se présenter.
 - `hist_test` affiche `La préhistoire c'est ce qu'il y a avant l'histoire.`
 - `physique_changements_etats` propose une leçon et un quiz sur les changements d'état de la matière.
 - `physique_proprietes_eau_liquide` propose une leçon et un quiz sur quelques propriétés de l'eau liquide.
