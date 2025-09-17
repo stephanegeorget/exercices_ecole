@@ -40,13 +40,22 @@ Les notes se placent {BOLD}sur{RESET} les lignes et {BOLD}entre{RESET} les ligne
 Pour lire les notes, on place une {BOLD}clé de sol{RESET} au début de la portée.
 Elle s'enroule autour de la {BOLD}2ᵉ ligne{RESET}, celle qui porte la note {BOLD}sol{RESET}.
 {GREEN}
-           __
-         /'  \
-        /      )
-       (  🎯  (
-        \.__./
-        /\\  \
-       /  \\  \
+           ___
+          |   \
+          |    )
+          |   /
+          \  /
+           |/
+           /
+          /|
+         / ___  
+        / (|  \
+       (  \🎯 | 
+        \._|._/
+           |        
+           |
+        .  |
+         \/
 {RESET}
 
 {BOLD}{YELLOW}Les notes 🎶{RESET}
