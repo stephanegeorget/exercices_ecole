@@ -110,16 +110,6 @@ def main() -> None:
     lesson = f"""
 {CYAN}{BOLD}📐  Appartenance : symboles ∈ et ∉  📐{RESET}
 
-Figure :
-        D •
-         ╲
-          ╲   (d2)
-           ╲
-F •─────────• A─────────• B
-  (d1)        ╲
-               ╲
-                • G
-
 - (d1) est la droite horizontale passant par les points F, A et B.
 - (d2) est la droite oblique passant par les points D, A et G.
 - Le segment [FG] relie directement F à G.
@@ -128,7 +118,18 @@ F •─────────• A─────────• B
 Le symbole {BOLD}∈{RESET} signifie « appartient à ».
 Le symbole {BOLD}∉{RESET} signifie « n'appartient pas à ».
 """
-    show_lesson(lesson)
+    figure = f"""
+Figure :
+      D •
+         ╲
+          ╲(d2)
+           ╲
+F •─────────•─────────• B
+  (d1)      A╲
+              ╲
+               • G
+"""
+    show_lesson(lesson + figure)
 
     questions = [
         Question("a", "F {{symbol}} (AB)", "∈"),
@@ -151,6 +152,7 @@ Le symbole {BOLD}∉{RESET} signifie « n'appartient pas à ».
     score = 0
     for question in questions:
         print()
+        print(figure)
         print(question.render())
         try:
             choice = choose_symbol()
