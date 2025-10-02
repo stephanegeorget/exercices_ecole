@@ -20,6 +20,7 @@ from . import (
     musique_cest_quoi,
     star_wars_quiz,
     sciences_vivant_non_vivant,
+    francais_imparfait_passe_simple,
 )
 
 # Les modules d'exercices sont listés ici pour apparaître dans le menu.
@@ -40,6 +41,7 @@ EXERCICES = [
     musique_cest_quoi,
     star_wars_quiz,
     sciences_vivant_non_vivant,
+    francais_imparfait_passe_simple,
 ]
 
 
