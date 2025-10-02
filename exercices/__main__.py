@@ -21,6 +21,8 @@ from . import (
     star_wars_quiz,
     sciences_vivant_non_vivant,
     francais_imparfait_passe_simple,
+    francais_passe_compose_terminaisons,
+    francais_passe_simple_terminaisons,
 )
 
 # Les modules d'exercices sont listés ici pour apparaître dans le menu.
@@ -42,6 +44,8 @@ EXERCICES = [
     star_wars_quiz,
     sciences_vivant_non_vivant,
     francais_imparfait_passe_simple,
+    francais_passe_compose_terminaisons,
+    francais_passe_simple_terminaisons,
 ]
 
 
