@@ -542,7 +542,8 @@ class ClozeApp:
     style = Style.from_dict(
         {
             "status": "reverse",
-            "message": "reverse",
+            "message.info": "reverse",
+            "message.error": "fg:#ff5555 bold",
             "menu-title": "bold underline",
             "menu-description": "italic",
             "token.current": "reverse",
@@ -559,6 +560,8 @@ class ClozeApp:
             self._seed_demo()
 
         self.message: str = ""
+        self.message_style: str = "info"
+        self._message_clear_task: Optional[asyncio.Task[None]] = None
         self.mode: str = "Home"
         self.current_screen: Optional[Screen] = None
 
@@ -578,7 +581,7 @@ class ClozeApp:
                     Window(
                         height=1,
                         content=FormattedTextControl(self._message_text),
-                        style="class:message",
+                        style="",
                     ),
                 ]
             )
@@ -648,23 +651,51 @@ class ClozeApp:
             parts.insert(1, ("", f" Editing: {self.current_screen.title_text} "))
         return FormattedText(parts)
 
-    def _message_text(self) -> str:
-        return self.message
+    def _message_text(self) -> FormattedText:
+        if not self.message:
+            return FormattedText("")
+        style = f"class:message.{self.message_style}"
+        return FormattedText([(style, self.message)])
 
-    def set_message(self, message: str, duration: float = 3.0) -> None:
+    def set_message(
+        self,
+        message: str,
+        duration: Optional[float] = 3.0,
+        *,
+        kind: str = "info",
+    ) -> None:
+        if self._message_clear_task is not None and not self._message_clear_task.done():
+            self._message_clear_task.cancel()
+        self._message_clear_task = None
         self.message = message
+        self.message_style = kind
         self.application.invalidate()
 
+        if not message or duration is None:
+            return
+
         async def clear() -> None:
-            await asyncio.sleep(duration)
+            try:
+                await asyncio.sleep(duration)
+            except asyncio.CancelledError:
+                return
             self.message = ""
+            self.message_style = "info"
             self.application.invalidate()
 
         try:
-            self.application.create_background_task(clear())
+            self._message_clear_task = self.application.create_background_task(clear())
         except RuntimeError:
             # Application not running yet; ignore.
             pass
+
+    def clear_message(self) -> None:
+        if self._message_clear_task is not None and not self._message_clear_task.done():
+            self._message_clear_task.cancel()
+        self._message_clear_task = None
+        self.message = ""
+        self.message_style = "info"
+        self.application.invalidate()
 
     def _current_container(self) -> Container:
         """Return the container for the active screen.
@@ -1053,11 +1084,12 @@ class ClozeEditorScreen(Screen):
         )
         if not cloze.title.strip():
             self.title_placeholder.ensure_placeholder()
+        self.title_area.buffer.on_text_changed += self._handle_title_text_changed
+        self._title_warning_message = "Please enter a name for this cloze."
         self.token_control = FormattedTextControl(self._formatted_tokens, focusable=True)
         self.token_window = Window(content=self.token_control, wrap_lines=True, always_hide_cursor=True)
         instructions_text = (
-            "Tab focus gaps • Shift+Tab previous gap • Ctrl+I next gap • "
-            "Ctrl+T focus title • Ctrl+G focus gaps • Left/Right move • Up mask • Down unmask\n"
+            "Tab switch title/gaps • Left/Right choose gap • Up create gap • Down remove gap\n"
             "Ctrl+A mask all • Ctrl+U unmask all • Esc save & return"
         )
         self.container_widget = Frame(
@@ -1080,6 +1112,7 @@ class ClozeEditorScreen(Screen):
 
     def on_show(self) -> None:
         self._focus_title(select_all=True)
+
         async def _refocus() -> None:
             await asyncio.sleep(0)
             self._focus_title(select_all=True)
@@ -1089,6 +1122,7 @@ class ClozeEditorScreen(Screen):
         except RuntimeError:
             # Application not running yet; ignore.
             pass
+        self._update_title_warning()
 
     def _focus_title(self, select_all: bool = False) -> None:
         """Move focus to the title field, optionally selecting the contents."""
@@ -1159,67 +1193,59 @@ class ClozeEditorScreen(Screen):
         token.masked = value
         self.app.application.invalidate()
 
-    def _jump_masked(self, forward: bool) -> None:
-        masked_indices = [i for i, token in enumerate(self.cloze.tokens) if token.masked]
-        if not masked_indices:
+    def _focus_gaps(self) -> None:
+        if not self.cloze.tokens:
             return
-        current = self.cursor_index
-        if forward:
-            for index in masked_indices:
-                if index > current:
+        if not self.cloze.tokens[self.cursor_index].is_word():
+            for index, token in enumerate(self.cloze.tokens):
+                if token.is_word():
                     self.cursor_index = index
                     break
-            else:
-                self.cursor_index = masked_indices[0]
-        else:
-            for index in reversed(masked_indices):
-                if index < current:
-                    self.cursor_index = index
-                    break
-            else:
-                self.cursor_index = masked_indices[-1]
+        self.title_placeholder.ensure_placeholder()
+        self.app.application.layout.focus(self.token_window)
         self.app.application.invalidate()
+
+    def _update_title_warning(self) -> None:
+        warning_needed = not self.title_placeholder.value()
+        warning_active = (
+            self.app.message == self._title_warning_message
+            and self.app.message_style == "error"
+        )
+        if warning_needed and not warning_active:
+            self.app.set_message(
+                self._title_warning_message,
+                duration=None,
+                kind="error",
+            )
+        elif not warning_needed and warning_active:
+            self.app.clear_message()
+
+    def _handle_title_text_changed(self, _event) -> None:
+        self.title_placeholder.ensure_placeholder()
+        self._update_title_warning()
 
     def key_bindings(self) -> KeyBindings:
         kb = KeyBindings()
 
-        @kb.add("c-t")
-        def _(event) -> None:
-            self._focus_title(select_all=True)
-
-        @kb.add("c-g")
-        def _(event) -> None:
-            self.title_placeholder.ensure_placeholder()
-            event.app.layout.focus(self.token_window)
-
-        @kb.add("left")
+        @kb.add("left", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._move_cursor(-1)
 
-        @kb.add("right")
+        @kb.add("right", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._move_cursor(1)
 
-        @kb.add("up")
+        @kb.add("up", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._mask_current(True)
 
-        @kb.add("down")
+        @kb.add("down", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._mask_current(False)
 
         @kb.add("tab", filter=has_focus(self.title_area))
         def _(event) -> None:
-            self.title_placeholder.ensure_placeholder()
-            event.app.layout.focus(self.token_window)
-
-        @kb.add(Keys.BackTab, filter=has_focus(self.token_window))
-        def _(event) -> None:
-            self._jump_masked(False)
-
-        @kb.add(Keys.ControlI, filter=has_focus(self.token_window))
-        def _(event) -> None:
-            self._jump_masked(True)
+            self._focus_gaps()
 
         @kb.add("tab", filter=has_focus(self.token_window))
         def _(event) -> None:
