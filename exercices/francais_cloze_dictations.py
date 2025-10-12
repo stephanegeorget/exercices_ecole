@@ -446,7 +446,11 @@ class TextInputPlaceholder:
     def __init__(self, text_area: TextArea, placeholder: str) -> None:
         self.text_area = text_area
         self.placeholder = placeholder
-        self._default_style = text_area.style or ""
+        window = getattr(text_area, "window", None)
+        default_style = ""
+        if window is not None:
+            default_style = getattr(window, "style", "") or ""
+        self._default_style = default_style
         if self._default_style:
             self._placeholder_style = f"{self._default_style} class:placeholder"
         else:
@@ -465,7 +469,8 @@ class TextInputPlaceholder:
         buffer = self.text_area.buffer
         if self._active and buffer.text != self.placeholder:
             self._active = False
-            self.text_area.style = self._default_style
+            if getattr(self.text_area, "window", None) is not None:
+                self.text_area.window.style = self._default_style
             buffer.selection_state = None
 
     def activate(self) -> None:
@@ -473,7 +478,8 @@ class TextInputPlaceholder:
             return
         self._active = True
         self._suspend_events = True
-        self.text_area.style = self._placeholder_style
+        if getattr(self.text_area, "window", None) is not None:
+            self.text_area.window.style = self._placeholder_style
         buffer = self.text_area.buffer
         buffer.set_document(
             Document(self.placeholder, len(self.placeholder)),
