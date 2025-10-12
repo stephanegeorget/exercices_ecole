@@ -545,8 +545,29 @@ class ActionRadioList(RadioList):
         values: Sequence[Tuple[Callable[[], None], str]],
         on_select: Optional[Callable[[Callable[[], None]], None]] = None,
     ) -> None:
-        super().__init__(values, select_on_focus=True)
+        # ``select_on_focus`` must stay ``False`` so that moving the cursor with
+        # the arrow keys (or any other navigation key) does not validate the
+        # current option automatically.  This mirrors how most terminal menus
+        # behave and prevents accidental activations when the user simply wants
+        # to explore the list.
+        super().__init__(values, select_on_focus=False)
         self._on_select = on_select
+
+        # ``RadioList`` already ships with comprehensive key bindings (arrows,
+        # page up/down, vim keys, …).  We extend them so that ``Tab`` and
+        # ``Shift-Tab`` can also be used to move through the menu, which is a
+        # familiar pattern for users navigating interactive prompts.
+        kb = self.control.key_bindings
+
+        @kb.add("tab")
+        def _tab(event) -> None:  # pragma: no cover - interactive behaviour
+            self._selected_index = (self._selected_index + 1) % len(self.values)
+            event.app.invalidate()
+
+        @kb.add("s-tab")
+        def _shift_tab(event) -> None:  # pragma: no cover - interactive behaviour
+            self._selected_index = (self._selected_index - 1) % len(self.values)
+            event.app.invalidate()
 
     def _handle_enter(self) -> None:
         super()._handle_enter()
@@ -559,7 +580,9 @@ class MenuScreen(Screen):
 
     menu_title: str = ""
     options: Sequence[Tuple[str, Callable[[], None]]]
-    help_text: str = "Up/Down navigate • Enter select • Esc back"
+    help_text: str = (
+        "Up/Down or Tab navigate • Shift-Tab go up • Enter select • Esc back"
+    )
 
     def __init__(self, app: ClozeApp) -> None:
         super().__init__(app)
