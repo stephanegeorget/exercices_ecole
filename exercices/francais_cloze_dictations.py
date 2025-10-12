@@ -957,13 +957,18 @@ class ClozeEditorScreen(Screen):
 
         layout = self.app.application.layout
         layout.focus(self.title_area)
+        buffer = self.title_area.buffer
         if select_all:
-            buffer = self.title_area.buffer
-            buffer.cursor_position = len(buffer.text)
-            buffer.start_selection(selection_type=SelectionType.CHARACTERS)
+            # Select from the start to the end so typing replaces the whole
+            # title.  ``start_selection`` records the *current* cursor
+            # position, so move to the beginning first and then extend the
+            # selection to the end of the text.
             buffer.cursor_position = 0
+            buffer.start_selection(selection_type=SelectionType.CHARACTERS)
+            buffer.cursor_position = len(buffer.text)
         else:
-            self.title_area.buffer.cursor_position = len(self.title_area.buffer.text)
+            buffer.selection_state = None
+            buffer.cursor_position = len(buffer.text)
 
     def _has_unsaved_changes(self) -> bool:
         current_title = self.title_area.text.strip()
