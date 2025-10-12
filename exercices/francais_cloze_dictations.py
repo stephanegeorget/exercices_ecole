@@ -1079,13 +1079,12 @@ class ClozeEditorScreen(Screen):
             multiline=False,
             prompt="Cloze title: ",
         )
+        placeholder_text = "Type the name of the cloze."
         self.title_placeholder = TextInputPlaceholder(
-            self.title_area, "type the name of the cloze"
+            self.title_area, placeholder_text
         )
-        if not cloze.title.strip():
-            self.title_placeholder.ensure_placeholder()
         self.title_area.buffer.on_text_changed += self._handle_title_text_changed
-        self._title_warning_message = "Please enter a name for this cloze."
+        self._title_warning_message = placeholder_text
         self.token_control = FormattedTextControl(self._formatted_tokens, focusable=True)
         self.token_window = Window(content=self.token_control, wrap_lines=True, always_hide_cursor=True)
         instructions_text = (
@@ -1141,7 +1140,6 @@ class ClozeEditorScreen(Screen):
         title = self.title_placeholder.value()
         if not title:
             self.app.set_message("Title required before saving")
-            self.title_placeholder.ensure_placeholder()
             self._focus_title(select_all=True)
             return False
         self.cloze.title = title
@@ -1201,7 +1199,6 @@ class ClozeEditorScreen(Screen):
                 if token.is_word():
                     self.cursor_index = index
                     break
-        self.title_placeholder.ensure_placeholder()
         self.app.application.layout.focus(self.token_window)
         self.app.application.invalidate()
 
@@ -1221,7 +1218,6 @@ class ClozeEditorScreen(Screen):
             self.app.clear_message()
 
     def _handle_title_text_changed(self, _event) -> None:
-        self.title_placeholder.ensure_placeholder()
         self._update_title_warning()
 
     def key_bindings(self) -> KeyBindings:
