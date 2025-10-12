@@ -545,12 +545,12 @@ class ActionRadioList(RadioList):
         values: Sequence[Tuple[Callable[[], None], str]],
         on_select: Optional[Callable[[Callable[[], None]], None]] = None,
     ) -> None:
-        # ``select_on_focus`` must stay ``False`` so that moving the cursor with
-        # the arrow keys (or any other navigation key) does not validate the
-        # current option automatically.  This mirrors how most terminal menus
-        # behave and prevents accidental activations when the user simply wants
-        # to explore the list.
-        super().__init__(values, select_on_focus=False)
+        # ``select_on_focus=True`` ensures that the visual marker (``*``) moves
+        # together with the focused entry when navigating with the arrow keys
+        # (or any other navigation key).  This mirrors how most menu systems
+        # operate: moving changes the highlighted option but does not activate
+        # it until the user explicitly validates their choice.
+        super().__init__(values, select_on_focus=True)
         self._on_select = on_select
 
         # ``RadioList`` already ships with comprehensive key bindings (arrows,
@@ -561,13 +561,19 @@ class ActionRadioList(RadioList):
 
         @kb.add("tab")
         def _tab(event) -> None:  # pragma: no cover - interactive behaviour
-            self._selected_index = (self._selected_index + 1) % len(self.values)
-            event.app.invalidate()
+            if self.values:
+                self._selected_index = (self._selected_index + 1) % len(self.values)
+                event.app.invalidate()
 
         @kb.add("s-tab")
         def _shift_tab(event) -> None:  # pragma: no cover - interactive behaviour
-            self._selected_index = (self._selected_index - 1) % len(self.values)
-            event.app.invalidate()
+            if self.values:
+                self._selected_index = (self._selected_index - 1) % len(self.values)
+                event.app.invalidate()
+
+        @kb.add(" ")
+        def _space(event) -> None:  # pragma: no cover - interactive behaviour
+            self._handle_enter()
 
     def _handle_enter(self) -> None:
         super()._handle_enter()
@@ -581,7 +587,7 @@ class MenuScreen(Screen):
     menu_title: str = ""
     options: Sequence[Tuple[str, Callable[[], None]]]
     help_text: str = (
-        "Up/Down or Tab navigate • Shift-Tab go up • Enter select • Esc back"
+        "Up/Down or Tab navigate • Shift-Tab go up • Enter/Space select • Esc back"
     )
 
     def __init__(self, app: ClozeApp) -> None:
@@ -652,6 +658,9 @@ class TeacherHomeScreen(MenuScreen):
     def _edit_cloze(self, cloze: Cloze) -> None:
         editor = ClozeEditorScreen(self.app, cloze=cloze, is_new=False)
         self.app.set_screen(editor)
+
+    def _create_cloze(self, text_source: TextSource) -> None:
+        self._open_cloze_editor(text_source)
 
 
 # ---------------------------------------------------------------------------
