@@ -29,6 +29,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import shutil
 import string
 import sys
@@ -44,6 +45,7 @@ except Exception:  # pragma: no cover - optional dependency
     pyperclip = None  # type: ignore
 
 from prompt_toolkit import Application
+from prompt_toolkit.buffer import SelectionType
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.application.run_in_terminal import run_in_terminal
 from prompt_toolkit.clipboard import ClipboardData
@@ -220,6 +222,41 @@ def save_cloze(cloze: Cloze) -> None:
 # Token helpers
 
 
+APOSTROPHE_CHARS = {"'", "’"}
+WORD_SEPARATOR_PUNCTUATION = {ch for ch in string.punctuation if ch not in APOSTROPHE_CHARS}
+
+
+def _core_bounds(text: str) -> Tuple[int, int]:
+    start = 0
+    end = len(text)
+    while start < end and text[start] in WORD_SEPARATOR_PUNCTUATION:
+        start += 1
+    while end > start and text[end - 1] in WORD_SEPARATOR_PUNCTUATION:
+        end -= 1
+    return start, end
+
+
+def token_answer_length(token: Token) -> int:
+    if token.is_whitespace() or token.is_newline():
+        return 0
+    start, end = _core_bounds(token.text)
+    core_length = end - start
+    if core_length <= 0:
+        stripped = token.text.strip()
+        return len(stripped)
+    return core_length
+
+
+def sanitize_answer_display(answer: str, expected_length: int) -> str:
+    display = re.sub(r"\s", "_", answer)
+    if expected_length > 0:
+        if len(display) < expected_length:
+            display = display + "_" * (expected_length - len(display))
+        else:
+            display = display[:expected_length]
+    return display
+
+
 def tokenize(text: str) -> List[Token]:
     """Split text into tokens while keeping whitespace tokens."""
 
@@ -238,8 +275,15 @@ def tokenize(text: str) -> List[Token]:
             tokens.append(Token(text[i:j], masked=False))
             i = j
             continue
+        if ch in WORD_SEPARATOR_PUNCTUATION:
+            j = i + 1
+            while j < len(text) and text[j] in WORD_SEPARATOR_PUNCTUATION:
+                j += 1
+            tokens.append(Token(text[i:j], masked=False))
+            i = j
+            continue
         j = i + 1
-        while j < len(text) and not text[j].isspace():
+        while j < len(text) and not text[j].isspace() and text[j] not in WORD_SEPARATOR_PUNCTUATION:
             j += 1
         tokens.append(Token(text[i:j], masked=False))
         i = j
@@ -249,14 +293,17 @@ def tokenize(text: str) -> List[Token]:
 def mask_display_for_token(token: Token) -> str:
     if token.is_whitespace() or token.is_newline():
         return token.text
-    length = len(token.text.strip()) or len(token.text)
-    underscores = "_" * max(3, min(length, 12))
-    trailing = ""
-    leading = ""
-    if token.text and token.text[0] in string.punctuation:
-        leading = token.text[0]
-    if token.text and token.text[-1] in string.punctuation and len(token.text) > 1:
-        trailing = token.text[-1]
+
+    text = token.text
+    start, end = _core_bounds(text)
+
+    core_length = end - start
+    if core_length <= 0:
+        core_length = len(text.strip()) or len(text)
+
+    underscores = "_" * core_length
+    leading = text[:start]
+    trailing = text[end:]
     return f"{leading}{underscores}{trailing}"
 
 
@@ -275,9 +322,10 @@ def render_tokens(tokens: Sequence[Token], answers: Optional[Dict[int, str]] = N
             parts.append(token.text)
             continue
         if token.masked:
-            answer = answers.get(index)
+            expected_length = token_answer_length(token)
+            answer = answers.get(index, "")
             if answer:
-                parts.append(answer)
+                parts.append(sanitize_answer_display(answer, expected_length))
             elif reveal_map.get(index):
                 parts.append(token.text)
             else:
@@ -295,24 +343,28 @@ def reconstructed_text(tokens: Sequence[Token], answers: Dict[int, str]) -> str:
         elif token.is_whitespace():
             parts.append(token.text)
         elif token.masked:
-            parts.append(answers.get(index, mask_display_for_token(token)))
+            expected_length = token_answer_length(token)
+            answer = answers.get(index, "")
+            if answer:
+                parts.append(sanitize_answer_display(answer, expected_length))
+            else:
+                parts.append(mask_display_for_token(token))
         else:
             parts.append(token.text)
     return "".join(parts)
 
 
-def copy_attempt_to_clipboard(full_text: str, answers: Dict[int, str]) -> bool:
-    """Copy student answers to the clipboard.
+def copy_attempt_to_clipboard(text_representation: str, answers: Dict[int, str]) -> bool:
+    """Copy the current practise text and answers to the clipboard.
 
     Returns ``True`` on success, ``False`` if no clipboard backend was available.
     """
 
-    payload = {
-        "full_text": full_text,
-        "answers": {str(k): v for k, v in sorted(answers.items()) if v},
-    }
-    combined = json.dumps(payload, indent=2, ensure_ascii=False)
-    clipboard_text = combined
+    payload = text_representation
+    if answers:
+        answers_json = json.dumps({str(k): v for k, v in sorted(answers.items()) if v}, indent=2, ensure_ascii=False)
+        payload = f"{text_representation}\n\nAnswers:\n{answers_json}"
+    clipboard_text = payload
 
     try:
         app = get_app()
@@ -832,8 +884,9 @@ class ClozeEditorScreen(Screen):
                     self.title_area,
                     Label(
                         text=(
-                            "Ctrl+T focus title • Ctrl+G focus gaps • Left/Right move • "
-                            "Up mask • Down unmask • Tab next gap • Shift+Tab previous gap"
+                            "Tab/Shift+Tab switch title & gaps • Ctrl+Tab next gap • "
+                            "Ctrl+Shift+Tab previous gap • Ctrl+T focus title • Ctrl+G focus gaps • "
+                            "Left/Right move • Up mask • Down unmask"
                         )
                     ),
                     Box(self.token_window, padding=1, style=""),
@@ -851,7 +904,12 @@ class ClozeEditorScreen(Screen):
         return self.container_widget
 
     def on_show(self) -> None:
-        self.app.application.layout.focus(self.token_window)
+        layout = self.app.application.layout
+        layout.focus(self.title_area)
+        buffer = self.title_area.buffer
+        buffer.cursor_position = len(buffer.text)
+        buffer.start_selection(selection_type=SelectionType.CHARACTERS)
+        buffer.cursor_position = 0
 
     def _formatted_tokens(self) -> FormattedText:
         fragments: List[Tuple[str, str]] = []
@@ -877,7 +935,15 @@ class ClozeEditorScreen(Screen):
     def _move_cursor(self, delta: int) -> None:
         if not self.cloze.tokens:
             return
-        self.cursor_index = max(0, min(len(self.cloze.tokens) - 1, self.cursor_index + delta))
+        index = self.cursor_index
+        limit = len(self.cloze.tokens)
+        while True:
+            index += delta
+            if index < 0 or index >= limit:
+                break
+            if self.cloze.tokens[index].is_word():
+                self.cursor_index = index
+                break
         self.app.application.invalidate()
 
     def _mask_current(self, value: bool) -> None:
@@ -939,11 +1005,23 @@ class ClozeEditorScreen(Screen):
         def _(event) -> None:
             event.app.layout.focus(self.token_window)
 
+        @kb.add("s-tab", filter=has_focus(self.title_area))
+        def _(event) -> None:
+            event.app.layout.focus(self.token_window)
+
         @kb.add("tab", filter=has_focus(self.token_window))
+        def _(event) -> None:
+            event.app.layout.focus(self.title_area)
+
+        @kb.add("s-tab", filter=has_focus(self.token_window))
+        def _(event) -> None:
+            event.app.layout.focus(self.title_area)
+
+        @kb.add("c-tab", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._jump_masked(True)
 
-        @kb.add("s-tab", filter=has_focus(self.token_window))
+        @kb.add("c-s-tab", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._jump_masked(False)
 
@@ -1054,8 +1132,12 @@ class StudentPracticeScreen(Screen):
                 fragments.append((style, token.text))
                 continue
             if token.masked:
+                expected_length = token_answer_length(token)
                 answer = self.answers.get(index, "")
-                display = answer or mask_display_for_token(token)
+                if answer:
+                    display = sanitize_answer_display(answer, expected_length)
+                else:
+                    display = mask_display_for_token(token)
                 if self.revealed.get(index) and not answer:
                     display = token.text
                 if index == self.cursor_index:
@@ -1079,12 +1161,21 @@ class StudentPracticeScreen(Screen):
         self.app.application.invalidate()
 
     def _set_answer(self, text: str) -> None:
+        token = self.cloze.tokens[self.cursor_index]
+        limit = token_answer_length(token)
+        if limit > 0:
+            text = text[:limit]
         self.answers[self.cursor_index] = text
         self.app.application.invalidate()
 
     def _insert_text(self, text: str) -> None:
+        token = self.cloze.tokens[self.cursor_index]
+        limit = token_answer_length(token)
         current = self.answers.get(self.cursor_index, "")
-        self.answers[self.cursor_index] = current + text
+        new_text = current + text
+        if limit > 0:
+            new_text = new_text[:limit]
+        self.answers[self.cursor_index] = new_text
         self.app.application.invalidate()
 
     def _backspace(self) -> None:
@@ -1125,8 +1216,8 @@ class StudentPracticeScreen(Screen):
 
         @kb.add("c-c")
         def _(event) -> None:
-            full_text = reconstructed_text(self.cloze.tokens, self.answers)
-            success = copy_attempt_to_clipboard(full_text, self.answers)
+            snapshot = reconstructed_text(self.cloze.tokens, self.answers)
+            success = copy_attempt_to_clipboard(snapshot, self.answers)
             if success:
                 self.app.set_message("Answers copied to clipboard")
             else:
