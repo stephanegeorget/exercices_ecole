@@ -447,16 +447,10 @@ class TextInputPlaceholder:
         self.text_area = text_area
         self.placeholder = placeholder
         window = getattr(text_area, "window", None)
-        if hasattr(text_area, "style"):
-            self._style_owner = text_area
-        elif window is not None and hasattr(window, "style"):
-            self._style_owner = window
-        else:
-            self._style_owner = None
-        if self._style_owner is not None:
-            self._default_style = getattr(self._style_owner, "style", "") or ""
-        else:
-            self._default_style = ""
+        default_style = ""
+        if window is not None:
+            default_style = getattr(window, "style", "") or ""
+        self._default_style = default_style
         if self._default_style:
             self._placeholder_style = f"{self._default_style} class:placeholder"
         else:
@@ -492,7 +486,8 @@ class TextInputPlaceholder:
         buffer = self.text_area.buffer
         if self._active and buffer.text != self.placeholder:
             self._active = False
-            self._set_style(self._default_style)
+            if getattr(self.text_area, "window", None) is not None:
+                self.text_area.window.style = self._default_style
             buffer.selection_state = None
 
     def activate(self) -> None:
@@ -500,7 +495,8 @@ class TextInputPlaceholder:
             return
         self._active = True
         self._suspend_events = True
-        self._set_style(self._placeholder_style)
+        if getattr(self.text_area, "window", None) is not None:
+            self.text_area.window.style = self._placeholder_style
         buffer = self.text_area.buffer
         buffer.set_document(
             Document(self.placeholder, len(self.placeholder)),
