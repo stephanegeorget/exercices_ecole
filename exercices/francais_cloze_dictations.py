@@ -46,6 +46,7 @@ except Exception:  # pragma: no cover - optional dependency
 
 from prompt_toolkit import Application
 from prompt_toolkit.buffer import SelectionType
+from prompt_toolkit.document import Document
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.application.run_in_terminal import run_in_terminal
 from prompt_toolkit.clipboard import ClipboardData
@@ -439,6 +440,71 @@ class Screen:
         """Hook when the screen becomes active."""
 
 
+class TextInputPlaceholder:
+    """Utility managing placeholder text for ``TextArea`` widgets."""
+
+    def __init__(self, text_area: TextArea, placeholder: str) -> None:
+        self.text_area = text_area
+        self.placeholder = placeholder
+        self._default_style = text_area.style or ""
+        if self._default_style:
+            self._placeholder_style = f"{self._default_style} class:placeholder"
+        else:
+            self._placeholder_style = "class:placeholder"
+        self._active = False
+        self._suspend_events = False
+        self.text_area.buffer.on_text_changed += self._handle_text_changed
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    def _handle_text_changed(self, _event) -> None:
+        if self._suspend_events:
+            return
+        buffer = self.text_area.buffer
+        if self._active and buffer.text != self.placeholder:
+            self._active = False
+            self.text_area.style = self._default_style
+            buffer.selection_state = None
+
+    def activate(self) -> None:
+        if self._active:
+            return
+        self._active = True
+        self._suspend_events = True
+        self.text_area.style = self._placeholder_style
+        buffer = self.text_area.buffer
+        buffer.set_document(
+            Document(self.placeholder, len(self.placeholder)),
+            bypass_readonly=True,
+        )
+        self._suspend_events = False
+
+    def ensure_placeholder(self) -> None:
+        if self._active:
+            return
+        if not self.text_area.buffer.text.strip():
+            self.activate()
+
+    def value(self) -> str:
+        if self._active:
+            return ""
+        return self.text_area.text.strip()
+
+    def focus(self, layout, select_all: bool) -> None:
+        if self._active:
+            select_all = True
+        layout.focus(self.text_area)
+        buffer = self.text_area.buffer
+        if select_all:
+            buffer.cursor_position = 0
+            buffer.start_selection(selection_type=SelectionType.CHARACTERS)
+            buffer.cursor_position = len(buffer.text)
+        else:
+            buffer.selection_state = None
+            buffer.cursor_position = len(buffer.text)
+
 class ClozeApp:
     """Application controller managing prompt_toolkit Application."""
 
@@ -447,8 +513,10 @@ class ClozeApp:
             "status": "reverse",
             "message": "reverse",
             "menu-title": "bold underline",
+            "menu-description": "italic",
             "token.current": "reverse",
             "token.masked": "underline",
+            "placeholder": "fg:#ff5555 italic",
         }
     )
 
@@ -730,7 +798,27 @@ class TeacherHomeScreen(MenuScreen):
             ),
             ("Back", app.goto_main_menu),
         ]
+        self.description_text = textwrap.fill(
+            (
+                "Texts are the original passages you prepare. Clozes are the "
+                "fill-in-the-blank exercises that students solve. Each cloze "
+                "is built from a text, and a single text can support multiple "
+                "different clozes."
+            ),
+            width=70,
+        )
         super().__init__(app)
+
+    def container(self):
+        body = HSplit(
+            [
+                Label(text=self.menu_title, style="class:menu-title"),
+                Label(text=self.description_text, style="class:menu-description"),
+                Box(self.radio, padding=1, padding_left=2, padding_right=2),
+                Label(text=self.help_text),
+            ]
+        )
+        return Frame(body)
 
     def _open_cloze_editor(self, text_source: TextSource) -> None:
         tokens = tokenize(text_source.text)
@@ -762,6 +850,10 @@ class TextSourceEditorScreen(Screen):
     def __init__(self, app: ClozeApp) -> None:
         super().__init__(app)
         self.title_input = TextArea(multiline=False, prompt="Title: ")
+        self.title_placeholder = TextInputPlaceholder(
+            self.title_input, "type the name of the text"
+        )
+        self.title_placeholder.ensure_placeholder()
         self.text_input = TextArea(
             multiline=True,
             scrollbar=True,
@@ -780,19 +872,22 @@ class TextSourceEditorScreen(Screen):
         return Frame(body)
 
     def on_show(self) -> None:
-        self.app.application.layout.focus(self.title_input)
+        self.title_placeholder.focus(self.app.application.layout, select_all=True)
 
     def _has_unsaved_changes(self) -> bool:
-        current_title = self.title_input.text.strip()
+        current_title = self.title_placeholder.value()
         current_text = self.text_input.text.rstrip()
         return bool(current_title or current_text)
 
     def _save_text_source(self) -> bool:
-        title = self.title_input.text.strip()
+        title = self.title_placeholder.value()
         text = self.text_input.text.rstrip()
         if not title:
             self.app.set_message("Title cannot be empty")
-            self.app.application.layout.focus(self.title_input)
+            self.title_placeholder.ensure_placeholder()
+            self.title_placeholder.focus(
+                self.app.application.layout, select_all=True
+            )
             return False
         if not text:
             self.app.set_message("Text cannot be empty")
@@ -813,11 +908,12 @@ class TextSourceEditorScreen(Screen):
 
         @kb.add("tab", filter=has_focus(self.title_input))
         def _(event) -> None:
+            self.title_placeholder.ensure_placeholder()
             event.app.layout.focus(self.text_input)
 
         @kb.add("s-tab", filter=has_focus(self.text_input))
         def _(event) -> None:
-            event.app.layout.focus(self.title_input)
+            self.title_placeholder.focus(event.app.layout, select_all=True)
 
         @kb.add("escape", eager=True)
         def _(event) -> None:
@@ -921,21 +1017,24 @@ class ClozeEditorScreen(Screen):
             multiline=False,
             prompt="Cloze title: ",
         )
+        self.title_placeholder = TextInputPlaceholder(
+            self.title_area, "type the name of the cloze"
+        )
+        if not cloze.title.strip():
+            self.title_placeholder.ensure_placeholder()
         self.token_control = FormattedTextControl(self._formatted_tokens, focusable=True)
         self.token_window = Window(content=self.token_control, wrap_lines=True, always_hide_cursor=True)
+        instructions_text = (
+            "Tab focus gaps • Shift+Tab previous gap • Ctrl+I next gap • "
+            "Ctrl+T focus title • Ctrl+G focus gaps • Left/Right move • Up mask • Down unmask\n"
+            "Ctrl+A mask all • Ctrl+U unmask all • Esc save & return"
+        )
         self.container_widget = Frame(
             HSplit(
                 [
                     self.title_area,
-                    Label(
-                        text=(
-                            "Tab focus gaps • Shift+Tab previous gap • Ctrl+I next gap • "
-                            "Ctrl+T focus title • Ctrl+G focus gaps • "
-                            "Left/Right move • Up mask • Down unmask"
-                        )
-                    ),
                     Box(self.token_window, padding=1, style=""),
-                    Label(text="Ctrl+A mask all • Ctrl+U unmask all • Esc save & return"),
+                    Label(text=instructions_text),
                 ]
             ),
             title="Cloze Editor",
@@ -943,7 +1042,7 @@ class ClozeEditorScreen(Screen):
 
     @property
     def title_text(self) -> str:
-        return self.title_area.text.strip() or "(untitled)"
+        return self.title_placeholder.value() or "(untitled)"
 
     def container(self):
         return self.container_widget
@@ -955,31 +1054,20 @@ class ClozeEditorScreen(Screen):
         """Move focus to the title field, optionally selecting the contents."""
 
         layout = self.app.application.layout
-        layout.focus(self.title_area)
-        buffer = self.title_area.buffer
-        if select_all:
-            # Select from the start to the end so typing replaces the whole
-            # title.  ``start_selection`` records the *current* cursor
-            # position, so move to the beginning first and then extend the
-            # selection to the end of the text.
-            buffer.cursor_position = 0
-            buffer.start_selection(selection_type=SelectionType.CHARACTERS)
-            buffer.cursor_position = len(buffer.text)
-        else:
-            buffer.selection_state = None
-            buffer.cursor_position = len(buffer.text)
+        self.title_placeholder.focus(layout, select_all=select_all)
 
     def _has_unsaved_changes(self) -> bool:
-        current_title = self.title_area.text.strip()
+        current_title = self.title_placeholder.value()
         if current_title != self._original_title:
             return True
         current_masks = [token.masked for token in self.cloze.tokens]
         return current_masks != self._original_masks
 
     def _save_cloze(self) -> bool:
-        title = self.title_area.text.strip()
+        title = self.title_placeholder.value()
         if not title:
             self.app.set_message("Title required before saving")
+            self.title_placeholder.ensure_placeholder()
             self._focus_title(select_all=True)
             return False
         self.cloze.title = title
@@ -1061,6 +1149,7 @@ class ClozeEditorScreen(Screen):
 
         @kb.add("c-g")
         def _(event) -> None:
+            self.title_placeholder.ensure_placeholder()
             event.app.layout.focus(self.token_window)
 
         @kb.add("left")
@@ -1081,6 +1170,7 @@ class ClozeEditorScreen(Screen):
 
         @kb.add("tab", filter=has_focus(self.title_area))
         def _(event) -> None:
+            self.title_placeholder.ensure_placeholder()
             event.app.layout.focus(self.token_window)
 
         @kb.add(Keys.BackTab, filter=has_focus(self.token_window))
