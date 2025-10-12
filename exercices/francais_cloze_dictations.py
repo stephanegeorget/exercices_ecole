@@ -384,7 +384,7 @@ class ClozeApp:
         self.global_bindings = KeyBindings()
         self.global_bindings.add("escape")(self._handle_escape)
 
-        self._container = DynamicContainer(lambda: self.current_screen.container())
+        self._container = DynamicContainer(self._current_container)
         self.layout = Layout(
             HSplit(
                 [
@@ -484,6 +484,21 @@ class ClozeApp:
         except RuntimeError:
             # Application not running yet; ignore.
             pass
+
+    def _current_container(self) -> Container:
+        """Return the container for the active screen.
+
+        ``prompt_toolkit`` initialises the layout while the application is
+        constructed, before any screen has been selected.  On the very first
+        run ``self.current_screen`` is still ``None`` which previously caused
+        an ``AttributeError`` when the dynamic container tried to access
+        ``.container()``.  Returning a minimal placeholder window avoids the
+        crash until ``set_screen`` is invoked.
+        """
+
+        if self.current_screen is not None:
+            return self.current_screen.container()
+        return Window(content=FormattedTextControl(""))
 
     def set_screen(self, screen: Screen) -> None:
         self.current_screen = screen
