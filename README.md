@@ -13,6 +13,7 @@ Le menu propose plusieurs exercices :
 - `geometrie_notation` propose une leçon et un quiz sur les segments, droites et demi-droites.
 - `musique_cest_quoi` propose une leçon colorée et un quiz pour découvrir la portée, les notes et les rythmes.
 - `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
+- `francais_cloze_dictations` fournit un atelier TUI pour créer et pratiquer des dictées à trous avec gestion des textes, des clozes et des tentatives élèves.
 
 Le menu propose également une option pour mettre à jour le logiciel. Elle exécute `git pull`, met à jour les dépendances Python, puis redémarre le programme.
 
