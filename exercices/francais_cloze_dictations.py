@@ -446,7 +446,17 @@ class TextInputPlaceholder:
     def __init__(self, text_area: TextArea, placeholder: str) -> None:
         self.text_area = text_area
         self.placeholder = placeholder
-        self._default_style = text_area.style or ""
+        window = getattr(text_area, "window", None)
+        if hasattr(text_area, "style"):
+            self._style_owner = text_area
+        elif window is not None and hasattr(window, "style"):
+            self._style_owner = window
+        else:
+            self._style_owner = None
+        if self._style_owner is not None:
+            self._default_style = getattr(self._style_owner, "style", "") or ""
+        else:
+            self._default_style = ""
         if self._default_style:
             self._placeholder_style = f"{self._default_style} class:placeholder"
         else:
@@ -459,13 +469,30 @@ class TextInputPlaceholder:
     def active(self) -> bool:
         return self._active
 
+    def _set_style(self, value: str) -> None:
+        if self._style_owner is not None:
+            setattr(self._style_owner, "style", value)
+
+    def deactivate(self) -> None:
+        if not self._active:
+            return
+        self._suspend_events = True
+        self._active = False
+        self._set_style(self._default_style)
+        self.text_area.buffer.set_document(
+            Document("", 0),
+            bypass_readonly=True,
+        )
+        self.text_area.buffer.selection_state = None
+        self._suspend_events = False
+
     def _handle_text_changed(self, _event) -> None:
         if self._suspend_events:
             return
         buffer = self.text_area.buffer
         if self._active and buffer.text != self.placeholder:
             self._active = False
-            self.text_area.style = self._default_style
+            self._set_style(self._default_style)
             buffer.selection_state = None
 
     def activate(self) -> None:
@@ -473,7 +500,7 @@ class TextInputPlaceholder:
             return
         self._active = True
         self._suspend_events = True
-        self.text_area.style = self._placeholder_style
+        self._set_style(self._placeholder_style)
         buffer = self.text_area.buffer
         buffer.set_document(
             Document(self.placeholder, len(self.placeholder)),
@@ -494,7 +521,8 @@ class TextInputPlaceholder:
 
     def focus(self, layout, select_all: bool) -> None:
         if self._active:
-            select_all = True
+            self.deactivate()
+            select_all = False
         layout.focus(self.text_area)
         buffer = self.text_area.buffer
         if select_all:
