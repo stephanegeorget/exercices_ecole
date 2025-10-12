@@ -463,6 +463,23 @@ class TextInputPlaceholder:
     def active(self) -> bool:
         return self._active
 
+    def _set_style(self, value: str) -> None:
+        if self._style_owner is not None:
+            setattr(self._style_owner, "style", value)
+
+    def deactivate(self) -> None:
+        if not self._active:
+            return
+        self._suspend_events = True
+        self._active = False
+        self._set_style(self._default_style)
+        self.text_area.buffer.set_document(
+            Document("", 0),
+            bypass_readonly=True,
+        )
+        self.text_area.buffer.selection_state = None
+        self._suspend_events = False
+
     def _handle_text_changed(self, _event) -> None:
         if self._suspend_events:
             return
@@ -500,7 +517,8 @@ class TextInputPlaceholder:
 
     def focus(self, layout, select_all: bool) -> None:
         if self._active:
-            select_all = True
+            self.deactivate()
+            select_all = False
         layout.focus(self.text_area)
         buffer = self.text_area.buffer
         if select_all:
