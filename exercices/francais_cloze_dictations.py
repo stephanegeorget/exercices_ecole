@@ -400,15 +400,15 @@ def copy_attempt_to_clipboard(text_representation: str, answers: Dict[int, str])
     except Exception:
         app = None
     success = False
-    if app is not None and app.clipboard is not None:
+    if pyperclip is not None:
         try:
-            app.clipboard.set_data(ClipboardData(text=clipboard_text))
+            pyperclip.copy(clipboard_text)
             success = True
         except Exception:
             success = False
-    if not success and pyperclip is not None:
+    if not success and app is not None and app.clipboard is not None:
         try:
-            pyperclip.copy(clipboard_text)
+            app.clipboard.set_data(ClipboardData(text=clipboard_text))
             success = True
         except Exception:
             success = False
@@ -1167,12 +1167,13 @@ class StudentPracticeScreen(Screen):
         self.no_gaps = not self.masked_indices
         if self.no_gaps:
             self.app.set_message("This cloze has no gaps. Press Esc to return.")
-        self.control = FormattedTextControl(self._formatted_text, focusable=True)
-        self.window = Window(self.control, wrap_lines=True, always_hide_cursor=True)
         self._autosave_path = ATTEMPTS_DIR / f"{self.cloze.id}_autosave.json"
         self._last_saved_snapshot: Tuple[Tuple[int, str], ...] = ()
         self._last_saved_revealed: Tuple[int, ...] = ()
         self._autosave_notified = False
+        self._load_autosave()
+        self.control = FormattedTextControl(self._formatted_text, focusable=True)
+        self.window = Window(self.control, wrap_lines=True, always_hide_cursor=True)
         self.container_widget = Frame(
             HSplit(
                 [
@@ -1269,6 +1270,52 @@ class StudentPracticeScreen(Screen):
 
     def _revealed_snapshot(self) -> Tuple[int, ...]:
         return tuple(sorted(index for index, value in self.revealed.items() if value))
+
+    def _load_autosave(self) -> None:
+        """Restore saved progress for the current cloze if available."""
+
+        if not self._autosave_path.exists():
+            return
+        try:
+            with self._autosave_path.open("r", encoding="utf-8") as fh:
+                data = json.load(fh)
+        except Exception:
+            self.app.set_message("Previous progress could not be restored.")
+            return
+        if data.get("cloze_id") != self.cloze.id:
+            return
+        answers = data.get("answers", {}) or {}
+        restored_answers: Dict[int, str] = {}
+        for key, value in answers.items():
+            try:
+                index = int(key)
+            except (TypeError, ValueError):
+                continue
+            if index in self.masked_indices and isinstance(value, str) and value:
+                restored_answers[index] = value
+        if restored_answers:
+            self.answers.update(restored_answers)
+        revealed = data.get("revealed", {}) or {}
+        restored_revealed: Dict[int, bool] = {}
+        for key, value in revealed.items():
+            if not value:
+                continue
+            try:
+                index = int(key)
+            except (TypeError, ValueError):
+                continue
+            if index in self.masked_indices:
+                restored_revealed[index] = True
+        if restored_revealed:
+            self.revealed.update(restored_revealed)
+        if restored_answers or restored_revealed:
+            for index in self.masked_indices:
+                if not self.answers.get(index):
+                    self.cursor_index = index
+                    break
+            self._last_saved_snapshot = self._answers_snapshot()
+            self._last_saved_revealed = self._revealed_snapshot()
+            self.app.set_message("Previous progress restored")
 
     def _save_progress(self, auto: bool) -> None:
         if self.no_gaps:
