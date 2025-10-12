@@ -774,7 +774,7 @@ class TextSourceEditorScreen(Screen):
                 Label(text="Create new Text Source"),
                 self.title_input,
                 Frame(self.text_input, title="Text"),
-                Label(text="Tab focus text • Shift+Tab focus title • Ctrl+S save • Esc back"),
+                Label(text="Tab focus text • Shift+Tab focus title • Esc save & return"),
             ]
         )
         return Frame(body)
@@ -787,10 +787,26 @@ class TextSourceEditorScreen(Screen):
         current_text = self.text_input.text.rstrip()
         return bool(current_title or current_text)
 
-    def _confirm_leave(self) -> bool:
-        if not self._has_unsaved_changes():
-            return True
-        return prompt_confirmation("Discard this text source without saving?")
+    def _save_text_source(self) -> bool:
+        title = self.title_input.text.strip()
+        text = self.text_input.text.rstrip()
+        if not title:
+            self.app.set_message("Title cannot be empty")
+            self.app.application.layout.focus(self.title_input)
+            return False
+        if not text:
+            self.app.set_message("Text cannot be empty")
+            self.app.application.layout.focus(self.text_input)
+            return False
+        text_source = TextSource(
+            id=generate_id("ts"),
+            title=title,
+            created_at=isoformat(utc_now()),
+            text=text,
+        )
+        save_text_source(text_source)
+        self.app.set_message("Text Source saved")
+        return True
 
     def key_bindings(self) -> KeyBindings:
         kb = KeyBindings()
@@ -803,29 +819,12 @@ class TextSourceEditorScreen(Screen):
         def _(event) -> None:
             event.app.layout.focus(self.title_input)
 
-        @kb.add("c-s")
-        def _(event) -> None:
-            title = self.title_input.text.strip()
-            text = self.text_input.text.rstrip()
-            if not title:
-                self.app.set_message("Title cannot be empty")
-                return
-            if not text:
-                self.app.set_message("Text cannot be empty")
-                return
-            text_source = TextSource(
-                id=generate_id("ts"),
-                title=title,
-                created_at=isoformat(utc_now()),
-                text=text,
-            )
-            save_text_source(text_source)
-            self.app.set_message("Text Source saved")
-            self.app.set_screen(TeacherHomeScreen(self.app))
-
         @kb.add("escape", eager=True)
         def _(event) -> None:
-            if self._confirm_leave():
+            if not self._has_unsaved_changes():
+                self.app.goto_teacher_home()
+                return
+            if self._save_text_source():
                 self.app.goto_teacher_home()
 
         return kb
@@ -936,7 +935,7 @@ class ClozeEditorScreen(Screen):
                         )
                     ),
                     Box(self.token_window, padding=1, style=""),
-                    Label(text="Ctrl+A mask all • Ctrl+U unmask all • Ctrl+S save • Esc back"),
+                    Label(text="Ctrl+A mask all • Ctrl+U unmask all • Esc save & return"),
                 ]
             ),
             title="Cloze Editor",
@@ -977,10 +976,18 @@ class ClozeEditorScreen(Screen):
         current_masks = [token.masked for token in self.cloze.tokens]
         return current_masks != self._original_masks
 
-    def _confirm_leave(self) -> bool:
-        if not self._has_unsaved_changes():
-            return True
-        return prompt_confirmation("Discard changes to this cloze?")
+    def _save_cloze(self) -> bool:
+        title = self.title_area.text.strip()
+        if not title:
+            self.app.set_message("Title required before saving")
+            self._focus_title(select_all=True)
+            return False
+        self.cloze.title = title
+        if self.is_new and not self.cloze.id.startswith("cl_"):
+            self.cloze.id = generate_id("cl")
+        save_cloze(self.cloze)
+        self.app.set_message("Cloze saved")
+        return True
 
     def _formatted_tokens(self) -> FormattedText:
         fragments: List[Tuple[str, str]] = []
@@ -1101,22 +1108,12 @@ class ClozeEditorScreen(Screen):
                 token.masked = False
             self.app.application.invalidate()
 
-        @kb.add("c-s")
-        def _(event) -> None:
-            title = self.title_area.text.strip()
-            if not title:
-                self.app.set_message("Title required before saving")
-                return
-            self.cloze.title = title
-            if self.is_new and not self.cloze.id.startswith("cl_"):
-                self.cloze.id = generate_id("cl")
-            save_cloze(self.cloze)
-            self.app.set_message("Cloze saved")
-            self.app.set_screen(TeacherHomeScreen(self.app))
-
         @kb.add("escape", eager=True)
         def _(event) -> None:
-            if self._confirm_leave():
+            if not self._has_unsaved_changes():
+                self.app.goto_teacher_home()
+                return
+            if self._save_cloze():
                 self.app.goto_teacher_home()
 
         return kb
