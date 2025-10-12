@@ -507,6 +507,8 @@ class TextInputPlaceholder:
             Document(self.placeholder, len(self.placeholder)),
             bypass_readonly=True,
         )
+        buffer.start_selection(selection_type=SelectionType.CHARACTERS)
+        buffer.cursor_position = 0
         self._suspend_events = False
 
     def ensure_placeholder(self) -> None:
@@ -1078,6 +1080,13 @@ class ClozeEditorScreen(Screen):
 
     def on_show(self) -> None:
         self._focus_title(select_all=True)
+        try:
+            self.app.application.call_from_executor(
+                lambda: self._focus_title(select_all=True)
+            )
+        except RuntimeError:
+            # Application not running yet; ignore.
+            pass
 
     def _focus_title(self, select_all: bool = False) -> None:
         """Move focus to the title field, optionally selecting the contents."""
