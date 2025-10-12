@@ -36,7 +36,7 @@ import textwrap
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar
 
 try:
     import pyperclip  # type: ignore
@@ -537,47 +537,55 @@ class ClozeApp:
 # Menu utilities
 
 
+T = TypeVar("T")
+
+
 class ActionRadioList(RadioList):
-    """RadioList that triggers a callback whenever a value is selected."""
+    """``RadioList`` variant that notifies a callback on explicit selection."""
 
     def __init__(
         self,
-        values: Sequence[Tuple[Callable[[], None], str]],
-        on_select: Optional[Callable[[Callable[[], None]], None]] = None,
+        values: Sequence[Tuple[T, str]],
+        on_select: Optional[Callable[[T], None]] = None,
     ) -> None:
-        # ``select_on_focus=True`` ensures that the visual marker (``*``) moves
-        # together with the focused entry when navigating with the arrow keys
-        # (or any other navigation key).  This mirrors how most menu systems
-        # operate: moving changes the highlighted option but does not activate
-        # it until the user explicitly validates their choice.
+        # ``select_on_focus=True`` keeps the visual marker (``*``) in sync with
+        # the currently highlighted option.  We suppress the activation callback
+        # for navigation keys so that moving through the menu never triggers the
+        # associated action until ``Enter`` or ``Space`` is pressed.
         super().__init__(values, select_on_focus=True)
-        self._on_select = on_select
+        self._on_select: Optional[Callable[[T], None]] = on_select
 
-        # ``RadioList`` already ships with comprehensive key bindings (arrows,
-        # page up/down, vim keys, …).  We extend them so that ``Tab`` and
-        # ``Shift-Tab`` can also be used to move through the menu, which is a
-        # familiar pattern for users navigating interactive prompts.
         kb = self.control.key_bindings
 
         @kb.add("tab")
         def _tab(event) -> None:  # pragma: no cover - interactive behaviour
             if self.values:
                 self._selected_index = (self._selected_index + 1) % len(self.values)
+                self._handle_enter()
                 event.app.invalidate()
 
         @kb.add("s-tab")
         def _shift_tab(event) -> None:  # pragma: no cover - interactive behaviour
             if self.values:
                 self._selected_index = (self._selected_index - 1) % len(self.values)
+                self._handle_enter()
                 event.app.invalidate()
 
-        @kb.add(" ")
-        def _space(event) -> None:  # pragma: no cover - interactive behaviour
-            self._handle_enter()
+        @kb.add("enter", eager=True)
+        @kb.add(" ", eager=True)
+        def _activate(event) -> None:  # pragma: no cover - interactive behaviour
+            self._activate_current()
 
-    def _handle_enter(self) -> None:
-        super()._handle_enter()
-        if not self.multiple_selection and self._on_select is not None:
+    def _handle_enter(self) -> None:  # type: ignore[override]
+        # Update the selected value without triggering callbacks.  This method
+        # is called by the base navigation handlers (arrow keys, page up/down,
+        # ...).  By keeping it side-effect free we ensure that moving the focus
+        # never validates the choice.
+        RadioList._handle_enter(self)
+
+    def _activate_current(self) -> None:
+        RadioList._handle_enter(self)
+        if self._on_select is not None:
             self._on_select(self.current_value)
 
 
@@ -746,7 +754,7 @@ class SelectTextSourceScreen(Screen):
             ]
         else:
             options = [(None, "No text sources available")]
-        self.radio = RadioList(options, select_on_focus=True)
+        self.radio = ActionRadioList(options, on_select=self._handle_selection)
 
     def container(self):
         body = HSplit(
@@ -761,17 +769,10 @@ class SelectTextSourceScreen(Screen):
     def on_show(self) -> None:
         self.app.application.layout.focus(self.radio)
 
-    def key_bindings(self) -> KeyBindings:
-        kb = KeyBindings()
-
-        @kb.add("enter")
-        def _(event) -> None:
-            value = self.radio.current_value
-            if value is None:
-                return
-            self.on_select_callback(value)
-
-        return kb
+    def _handle_selection(self, value: Optional[TextSource]) -> None:
+        if value is None:
+            return
+        self.on_select_callback(value)
 
 
 class SelectClozeScreen(Screen):
@@ -787,7 +788,7 @@ class SelectClozeScreen(Screen):
                 options.append((cloze, f"{cloze.title} — {cloze.created_at} — {source_title}"))
         else:
             options = [(None, "No clozes available")]
-        self.radio = RadioList(options, select_on_focus=True)
+        self.radio = ActionRadioList(options, on_select=self._handle_selection)
 
     def container(self):
         body = HSplit(
@@ -802,17 +803,10 @@ class SelectClozeScreen(Screen):
     def on_show(self) -> None:
         self.app.application.layout.focus(self.radio)
 
-    def key_bindings(self) -> KeyBindings:
-        kb = KeyBindings()
-
-        @kb.add("enter")
-        def _(event) -> None:
-            value = self.radio.current_value
-            if value is None:
-                return
-            self.on_select_callback(value)
-
-        return kb
+    def _handle_selection(self, value: Optional[Cloze]) -> None:
+        if value is None:
+            return
+        self.on_select_callback(value)
 
 
 # ---------------------------------------------------------------------------
@@ -998,7 +992,7 @@ class StudentSelectClozeScreen(Screen):
                 items.append((cloze, f"{cloze.title} — {cloze.created_at} — {source_title}"))
         else:
             items = [(None, "No cloze dictations available")]
-        self.radio = RadioList(items, select_on_focus=True)
+        self.radio = ActionRadioList(items, on_select=self._handle_selection)
 
     def container(self):
         body = HSplit(
@@ -1013,17 +1007,10 @@ class StudentSelectClozeScreen(Screen):
     def on_show(self) -> None:
         self.app.application.layout.focus(self.radio)
 
-    def key_bindings(self) -> KeyBindings:
-        kb = KeyBindings()
-
-        @kb.add("enter")
-        def _(event) -> None:
-            cloze = self.radio.current_value
-            if cloze is None:
-                return
-            self.app.set_screen(StudentPracticeScreen(self.app, cloze))
-
-        return kb
+    def _handle_selection(self, cloze: Optional[Cloze]) -> None:
+        if cloze is None:
+            return
+        self.app.set_screen(StudentPracticeScreen(self.app, cloze))
 
 
 class StudentPracticeScreen(Screen):
