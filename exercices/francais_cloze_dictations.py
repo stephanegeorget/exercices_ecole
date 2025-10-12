@@ -930,7 +930,7 @@ class ClozeEditorScreen(Screen):
                     self.title_area,
                     Label(
                         text=(
-                            "Tab focus gaps • Shift+Tab previous gap • Ctrl+I (Ctrl+Tab) next gap • "
+                            "Tab focus gaps • Shift+Tab previous gap • Ctrl+I next gap • "
                             "Ctrl+T focus title • Ctrl+G focus gaps • "
                             "Left/Right move • Up mask • Down unmask"
                         )
@@ -950,12 +950,20 @@ class ClozeEditorScreen(Screen):
         return self.container_widget
 
     def on_show(self) -> None:
+        self._focus_title(select_all=True)
+
+    def _focus_title(self, select_all: bool = False) -> None:
+        """Move focus to the title field, optionally selecting the contents."""
+
         layout = self.app.application.layout
         layout.focus(self.title_area)
-        buffer = self.title_area.buffer
-        buffer.cursor_position = len(buffer.text)
-        buffer.start_selection(selection_type=SelectionType.CHARACTERS)
-        buffer.cursor_position = 0
+        if select_all:
+            buffer = self.title_area.buffer
+            buffer.cursor_position = len(buffer.text)
+            buffer.start_selection(selection_type=SelectionType.CHARACTERS)
+            buffer.cursor_position = 0
+        else:
+            self.title_area.buffer.cursor_position = len(self.title_area.buffer.text)
 
     def _has_unsaved_changes(self) -> bool:
         current_title = self.title_area.text.strip()
@@ -1037,7 +1045,7 @@ class ClozeEditorScreen(Screen):
 
         @kb.add("c-t")
         def _(event) -> None:
-            event.app.layout.focus(self.title_area)
+            self._focus_title(select_all=True)
 
         @kb.add("c-g")
         def _(event) -> None:
@@ -1073,7 +1081,7 @@ class ClozeEditorScreen(Screen):
 
         @kb.add("tab", filter=has_focus(self.token_window))
         def _(event) -> None:
-            event.app.layout.focus(self.title_area)
+            self._focus_title(select_all=False)
 
         @kb.add("c-a")
         def _(event) -> None:
