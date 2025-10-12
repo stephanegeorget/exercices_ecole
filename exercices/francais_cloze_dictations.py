@@ -47,6 +47,7 @@ from prompt_toolkit import Application
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.application.run_in_terminal import run_in_terminal
 from prompt_toolkit.clipboard import ClipboardData
+from prompt_toolkit.filters import has_focus
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
 from prompt_toolkit.keys import Keys
@@ -544,7 +545,7 @@ class ActionRadioList(RadioList):
         values: Sequence[Tuple[Callable[[], None], str]],
         on_select: Optional[Callable[[Callable[[], None]], None]] = None,
     ) -> None:
-        super().__init__(values)
+        super().__init__(values, select_on_focus=True)
         self._on_select = on_select
 
     def _handle_enter(self) -> None:
@@ -558,6 +559,7 @@ class MenuScreen(Screen):
 
     menu_title: str = ""
     options: Sequence[Tuple[str, Callable[[], None]]]
+    help_text: str = "Up/Down navigate • Enter select • Esc back"
 
     def __init__(self, app: ClozeApp) -> None:
         super().__init__(app)
@@ -573,6 +575,7 @@ class MenuScreen(Screen):
             [
                 Label(text=self.menu_title, style="class:menu-title"),
                 Box(self.radio, padding=1, padding_left=2, padding_right=2),
+                Label(text=self.help_text),
             ]
         )
         return Frame(body)
@@ -650,16 +653,24 @@ class TextSourceEditorScreen(Screen):
                 Label(text="Create new Text Source"),
                 self.title_input,
                 Frame(self.text_input, title="Text"),
-                Label(text="Ctrl+S Save • Esc Back"),
+                Label(text="Tab focus text • Shift+Tab focus title • Ctrl+S save • Esc back"),
             ]
         )
         return Frame(body)
 
     def on_show(self) -> None:
-        self.app.application.layout.focus(self.text_input)
+        self.app.application.layout.focus(self.title_input)
 
     def key_bindings(self) -> KeyBindings:
         kb = KeyBindings()
+
+        @kb.add("tab", filter=has_focus(self.title_input))
+        def _(event) -> None:
+            event.app.layout.focus(self.text_input)
+
+        @kb.add("s-tab", filter=has_focus(self.text_input))
+        def _(event) -> None:
+            event.app.layout.focus(self.title_input)
 
         @kb.add("c-s")
         def _(event) -> None:
@@ -703,14 +714,14 @@ class SelectTextSourceScreen(Screen):
             ]
         else:
             options = [(None, "No text sources available")]
-        self.radio = RadioList(options)
+        self.radio = RadioList(options, select_on_focus=True)
 
     def container(self):
         body = HSplit(
             [
                 Label(text="Select Text Source", style="class:menu-title"),
                 Box(self.radio, padding=1),
-                Label(text="Enter select • Esc back"),
+                Label(text="Up/Down navigate • Enter select • Esc back"),
             ]
         )
         return Frame(body)
@@ -744,14 +755,14 @@ class SelectClozeScreen(Screen):
                 options.append((cloze, f"{cloze.title} — {cloze.created_at} — {source_title}"))
         else:
             options = [(None, "No clozes available")]
-        self.radio = RadioList(options)
+        self.radio = RadioList(options, select_on_focus=True)
 
     def container(self):
         body = HSplit(
             [
                 Label(text="Select Cloze", style="class:menu-title"),
                 Box(self.radio, padding=1),
-                Label(text="Enter select • Esc back"),
+                Label(text="Up/Down navigate • Enter select • Esc back"),
             ]
         )
         return Frame(body)
@@ -793,9 +804,14 @@ class ClozeEditorScreen(Screen):
             HSplit(
                 [
                     self.title_area,
-                    Label(text="Arrows navigate • Up mask • Down unmask • Tab review"),
+                    Label(
+                        text=(
+                            "Ctrl+T focus title • Ctrl+G focus gaps • Left/Right move • "
+                            "Up mask • Down unmask • Tab next gap • Shift+Tab previous gap"
+                        )
+                    ),
                     Box(self.token_window, padding=1, style=""),
-                    Label(text="Ctrl+A mask all • Ctrl+U unmask all • Ctrl+S save"),
+                    Label(text="Ctrl+A mask all • Ctrl+U unmask all • Ctrl+S save • Esc back"),
                 ]
             ),
             title="Cloze Editor",
@@ -869,6 +885,14 @@ class ClozeEditorScreen(Screen):
     def key_bindings(self) -> KeyBindings:
         kb = KeyBindings()
 
+        @kb.add("c-t")
+        def _(event) -> None:
+            event.app.layout.focus(self.title_area)
+
+        @kb.add("c-g")
+        def _(event) -> None:
+            event.app.layout.focus(self.token_window)
+
         @kb.add("left")
         def _(event) -> None:
             self._move_cursor(-1)
@@ -885,11 +909,15 @@ class ClozeEditorScreen(Screen):
         def _(event) -> None:
             self._mask_current(False)
 
-        @kb.add("tab")
+        @kb.add("tab", filter=has_focus(self.title_area))
+        def _(event) -> None:
+            event.app.layout.focus(self.token_window)
+
+        @kb.add("tab", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._jump_masked(True)
 
-        @kb.add("s-tab")
+        @kb.add("s-tab", filter=has_focus(self.token_window))
         def _(event) -> None:
             self._jump_masked(False)
 
@@ -938,13 +966,14 @@ class StudentSelectClozeScreen(Screen):
                 items.append((cloze, f"{cloze.title} — {cloze.created_at} — {source_title}"))
         else:
             items = [(None, "No cloze dictations available")]
-        self.radio = RadioList(items)
+        self.radio = RadioList(items, select_on_focus=True)
 
     def container(self):
         body = HSplit(
             [
                 Label(text="Select a Cloze to practise", style="class:menu-title"),
                 Box(self.radio, padding=1),
+                Label(text="Up/Down navigate • Enter select • Esc back"),
             ]
         )
         return Frame(body)
@@ -981,7 +1010,8 @@ class StudentPracticeScreen(Screen):
         self.container_widget = Frame(
             HSplit(
                 [
-                    Label(text="Left/Right move • Type to answer • Ctrl+C copy • Ctrl+R reveal"),
+                    Label(text="Left/Right move • Type to answer • Backspace/Delete edit"),
+                    Label(text="Ctrl+R reveal • Ctrl+C copy • Ctrl+S save attempt • Esc back"),
                     Box(self.window, padding=1),
                 ]
             ),
