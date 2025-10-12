@@ -103,6 +103,24 @@ def atomic_write_json(path: Path, data: dict) -> None:
     tmp_path.replace(path)
 
 
+def prompt_confirmation(message: str) -> bool:
+    """Prompt the user for confirmation, returning ``True`` if accepted."""
+
+    confirmed = False
+
+    def _ask() -> None:
+        nonlocal confirmed
+        try:
+            answer = input(f"{message} [y/N]: ").strip().lower()
+        except EOFError:
+            confirmed = False
+        else:
+            confirmed = answer in {"y", "yes"}
+
+    run_in_terminal(_ask)
+    return confirmed
+
+
 @dataclass
 class Token:
     text: str
@@ -257,6 +275,17 @@ def sanitize_answer_display(answer: str, expected_length: int) -> str:
     return display
 
 
+def answer_display_for_token(token: Token, answer: str) -> str:
+    """Return the formatted answer keeping surrounding punctuation intact."""
+
+    expected_length = token_answer_length(token)
+    core = sanitize_answer_display(answer, expected_length)
+    start, end = _core_bounds(token.text)
+    leading = token.text[:start]
+    trailing = token.text[end:]
+    return f"{leading}{core}{trailing}"
+
+
 def tokenize(text: str) -> List[Token]:
     """Split text into tokens while keeping whitespace tokens."""
 
@@ -325,7 +354,7 @@ def render_tokens(tokens: Sequence[Token], answers: Optional[Dict[int, str]] = N
             expected_length = token_answer_length(token)
             answer = answers.get(index, "")
             if answer:
-                parts.append(sanitize_answer_display(answer, expected_length))
+                parts.append(answer_display_for_token(token, answer))
             elif reveal_map.get(index):
                 parts.append(token.text)
             else:
@@ -346,7 +375,7 @@ def reconstructed_text(tokens: Sequence[Token], answers: Dict[int, str]) -> str:
             expected_length = token_answer_length(token)
             answer = answers.get(index, "")
             if answer:
-                parts.append(sanitize_answer_display(answer, expected_length))
+                parts.append(answer_display_for_token(token, answer))
             else:
                 parts.append(mask_display_for_token(token))
         else:
@@ -753,6 +782,16 @@ class TextSourceEditorScreen(Screen):
     def on_show(self) -> None:
         self.app.application.layout.focus(self.title_input)
 
+    def _has_unsaved_changes(self) -> bool:
+        current_title = self.title_input.text.strip()
+        current_text = self.text_input.text.rstrip()
+        return bool(current_title or current_text)
+
+    def _confirm_leave(self) -> bool:
+        if not self._has_unsaved_changes():
+            return True
+        return prompt_confirmation("Discard this text source without saving?")
+
     def key_bindings(self) -> KeyBindings:
         kb = KeyBindings()
 
@@ -783,6 +822,11 @@ class TextSourceEditorScreen(Screen):
             save_text_source(text_source)
             self.app.set_message("Text Source saved")
             self.app.set_screen(TeacherHomeScreen(self.app))
+
+        @kb.add("escape", eager=True)
+        def _(event) -> None:
+            if self._confirm_leave():
+                self.app.goto_teacher_home()
 
         return kb
 
@@ -871,6 +915,8 @@ class ClozeEditorScreen(Screen):
         self.cloze = cloze
         self.is_new = is_new
         self.cursor_index = 0
+        self._original_title = cloze.title.strip()
+        self._original_masks = [token.masked for token in cloze.tokens]
         self.title_area = TextArea(
             text=cloze.title,
             multiline=False,
@@ -884,8 +930,8 @@ class ClozeEditorScreen(Screen):
                     self.title_area,
                     Label(
                         text=(
-                            "Tab/Shift+Tab switch title & gaps • Ctrl+Tab next gap • "
-                            "Ctrl+Shift+Tab previous gap • Ctrl+T focus title • Ctrl+G focus gaps • "
+                            "Tab focus gaps • Shift+Tab previous gap • Ctrl+I (Ctrl+Tab) next gap • "
+                            "Ctrl+T focus title • Ctrl+G focus gaps • "
                             "Left/Right move • Up mask • Down unmask"
                         )
                     ),
@@ -910,6 +956,18 @@ class ClozeEditorScreen(Screen):
         buffer.cursor_position = len(buffer.text)
         buffer.start_selection(selection_type=SelectionType.CHARACTERS)
         buffer.cursor_position = 0
+
+    def _has_unsaved_changes(self) -> bool:
+        current_title = self.title_area.text.strip()
+        if current_title != self._original_title:
+            return True
+        current_masks = [token.masked for token in self.cloze.tokens]
+        return current_masks != self._original_masks
+
+    def _confirm_leave(self) -> bool:
+        if not self._has_unsaved_changes():
+            return True
+        return prompt_confirmation("Discard changes to this cloze?")
 
     def _formatted_tokens(self) -> FormattedText:
         fragments: List[Tuple[str, str]] = []
@@ -1005,25 +1063,17 @@ class ClozeEditorScreen(Screen):
         def _(event) -> None:
             event.app.layout.focus(self.token_window)
 
-        @kb.add("s-tab", filter=has_focus(self.title_area))
+        @kb.add(Keys.BackTab, filter=has_focus(self.token_window))
         def _(event) -> None:
-            event.app.layout.focus(self.token_window)
+            self._jump_masked(False)
+
+        @kb.add(Keys.ControlI, filter=has_focus(self.token_window))
+        def _(event) -> None:
+            self._jump_masked(True)
 
         @kb.add("tab", filter=has_focus(self.token_window))
         def _(event) -> None:
             event.app.layout.focus(self.title_area)
-
-        @kb.add("s-tab", filter=has_focus(self.token_window))
-        def _(event) -> None:
-            event.app.layout.focus(self.title_area)
-
-        @kb.add("c-tab", filter=has_focus(self.token_window))
-        def _(event) -> None:
-            self._jump_masked(True)
-
-        @kb.add("c-s-tab", filter=has_focus(self.token_window))
-        def _(event) -> None:
-            self._jump_masked(False)
 
         @kb.add("c-a")
         def _(event) -> None:
@@ -1050,6 +1100,11 @@ class ClozeEditorScreen(Screen):
             save_cloze(self.cloze)
             self.app.set_message("Cloze saved")
             self.app.set_screen(TeacherHomeScreen(self.app))
+
+        @kb.add("escape", eager=True)
+        def _(event) -> None:
+            if self._confirm_leave():
+                self.app.goto_teacher_home()
 
         return kb
 
@@ -1104,11 +1159,15 @@ class StudentPracticeScreen(Screen):
             self.app.set_message("This cloze has no gaps. Press Esc to return.")
         self.control = FormattedTextControl(self._formatted_text, focusable=True)
         self.window = Window(self.control, wrap_lines=True, always_hide_cursor=True)
+        self._autosave_path = ATTEMPTS_DIR / f"{self.cloze.id}_autosave.json"
+        self._last_saved_snapshot: Tuple[Tuple[int, str], ...] = ()
+        self._last_saved_revealed: Tuple[int, ...] = ()
+        self._autosave_notified = False
         self.container_widget = Frame(
             HSplit(
                 [
-                    Label(text="Left/Right move • Type to answer • Backspace/Delete edit"),
-                    Label(text="Ctrl+R reveal • Ctrl+C copy • Ctrl+S save attempt • Esc back"),
+                    Label(text="Left/Right or Tab/Shift+Tab move • Type to answer • Backspace/Delete edit"),
+                    Label(text="Ctrl+R reveal • Ctrl+C copy • Progress auto-saved • Esc back"),
                     Box(self.window, padding=1),
                 ]
             ),
@@ -1135,7 +1194,7 @@ class StudentPracticeScreen(Screen):
                 expected_length = token_answer_length(token)
                 answer = self.answers.get(index, "")
                 if answer:
-                    display = sanitize_answer_display(answer, expected_length)
+                    display = answer_display_for_token(token, answer)
                 else:
                     display = mask_display_for_token(token)
                 if self.revealed.get(index) and not answer:
@@ -1167,6 +1226,7 @@ class StudentPracticeScreen(Screen):
             text = text[:limit]
         self.answers[self.cursor_index] = text
         self.app.application.invalidate()
+        self._save_progress(auto=True)
 
     def _insert_text(self, text: str) -> None:
         token = self.cloze.tokens[self.cursor_index]
@@ -1177,17 +1237,60 @@ class StudentPracticeScreen(Screen):
             new_text = new_text[:limit]
         self.answers[self.cursor_index] = new_text
         self.app.application.invalidate()
+        self._save_progress(auto=True)
 
     def _backspace(self) -> None:
         current = self.answers.get(self.cursor_index, "")
         if current:
             self.answers[self.cursor_index] = current[:-1]
+            if not self.answers[self.cursor_index]:
+                self.answers.pop(self.cursor_index)
             self.app.application.invalidate()
+            self._save_progress(auto=True)
 
     def _delete(self) -> None:
         if self.cursor_index in self.answers:
-            self.answers[self.cursor_index] = ""
+            self.answers.pop(self.cursor_index, None)
             self.app.application.invalidate()
+            self._save_progress(auto=True)
+
+    def _answers_snapshot(self) -> Tuple[Tuple[int, str], ...]:
+        return tuple(sorted((index, text) for index, text in self.answers.items() if text))
+
+    def _revealed_snapshot(self) -> Tuple[int, ...]:
+        return tuple(sorted(index for index, value in self.revealed.items() if value))
+
+    def _save_progress(self, auto: bool) -> None:
+        if self.no_gaps:
+            return
+        answers_snapshot = self._answers_snapshot()
+        revealed_snapshot = self._revealed_snapshot()
+        if auto and answers_snapshot == self._last_saved_snapshot and revealed_snapshot == self._last_saved_revealed:
+            return
+        ensure_directories()
+        payload = {
+            "cloze_id": self.cloze.id,
+            "started_at": self.cloze.created_at,
+            "saved_at": isoformat(utc_now()),
+            "answers": {str(k): v for k, v in answers_snapshot},
+        }
+        if revealed_snapshot:
+            payload["revealed"] = {str(index): True for index in revealed_snapshot}
+        payload["auto_saved"] = auto
+        if auto:
+            path = self._autosave_path
+        else:
+            file_name = f"{self.cloze.id}_{datetime.utcnow():%Y%m%d_%H%M%S}.json"
+            path = ATTEMPTS_DIR / file_name
+        atomic_write_json(path, payload)
+        self._last_saved_snapshot = answers_snapshot
+        self._last_saved_revealed = revealed_snapshot
+        if auto:
+            if not self._autosave_notified:
+                self.app.set_message("Progress saved automatically")
+                self._autosave_notified = True
+        else:
+            self.app.set_message("Attempt saved")
 
     def key_bindings(self) -> KeyBindings:
         kb = KeyBindings()
@@ -1195,10 +1298,22 @@ class StudentPracticeScreen(Screen):
         @kb.add("left")
         def _(event) -> None:
             self._move_cursor(False)
+            self._save_progress(auto=True)
 
         @kb.add("right")
         def _(event) -> None:
             self._move_cursor(True)
+            self._save_progress(auto=True)
+
+        @kb.add("tab")
+        def _(event) -> None:
+            self._move_cursor(True)
+            self._save_progress(auto=True)
+
+        @kb.add("s-tab")
+        def _(event) -> None:
+            self._move_cursor(False)
+            self._save_progress(auto=True)
 
         @kb.add("backspace")
         def _(event) -> None:
@@ -1213,6 +1328,7 @@ class StudentPracticeScreen(Screen):
             current = self.revealed.get(self.cursor_index, False)
             self.revealed[self.cursor_index] = not current
             self.app.application.invalidate()
+            self._save_progress(auto=True)
 
         @kb.add("c-c")
         def _(event) -> None:
@@ -1225,16 +1341,7 @@ class StudentPracticeScreen(Screen):
 
         @kb.add("c-s")
         def _(event) -> None:
-            attempt = {
-                "cloze_id": self.cloze.id,
-                "started_at": self.cloze.created_at,
-                "saved_at": isoformat(utc_now()),
-                "answers": {str(k): v for k, v in self.answers.items() if v},
-            }
-            file_name = f"{self.cloze.id}_{datetime.utcnow():%Y%m%d_%H%M%S}.json"
-            ensure_directories()
-            atomic_write_json(ATTEMPTS_DIR / file_name, attempt)
-            self.app.set_message("Attempt saved")
+            self._save_progress(auto=False)
 
         @kb.add("escape")
         def _(event) -> None:
