@@ -1080,10 +1080,12 @@ class ClozeEditorScreen(Screen):
 
     def on_show(self) -> None:
         self._focus_title(select_all=True)
+        async def _refocus() -> None:
+            await asyncio.sleep(0)
+            self._focus_title(select_all=True)
+
         try:
-            self.app.application.call_from_executor(
-                lambda: self._focus_title(select_all=True)
-            )
+            self.app.application.create_background_task(_refocus())
         except RuntimeError:
             # Application not running yet; ignore.
             pass
