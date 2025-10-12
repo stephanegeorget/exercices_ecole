@@ -536,6 +536,23 @@ class ClozeApp:
 # Menu utilities
 
 
+class ActionRadioList(RadioList):
+    """RadioList that triggers a callback whenever a value is selected."""
+
+    def __init__(
+        self,
+        values: Sequence[Tuple[Callable[[], None], str]],
+        on_select: Optional[Callable[[Callable[[], None]], None]] = None,
+    ) -> None:
+        super().__init__(values)
+        self._on_select = on_select
+
+    def _handle_enter(self) -> None:
+        super()._handle_enter()
+        if not self.multiple_selection and self._on_select is not None:
+            self._on_select(self.current_value)
+
+
 class MenuScreen(Screen):
     """Simple vertical menu screen based on a RadioList."""
 
@@ -544,7 +561,12 @@ class MenuScreen(Screen):
 
     def __init__(self, app: ClozeApp) -> None:
         super().__init__(app)
-        self.radio = RadioList([(callback, label) for label, callback in self.options])
+        values = [(callback, label) for label, callback in self.options]
+        self.radio = ActionRadioList(values, on_select=self._handle_selection)
+
+    def _handle_selection(self, callback: Callable[[], None]) -> None:
+        if callback:
+            callback()
 
     def container(self):
         body = HSplit(
@@ -554,18 +576,6 @@ class MenuScreen(Screen):
             ]
         )
         return Frame(body)
-
-    def key_bindings(self) -> KeyBindings:
-        kb = KeyBindings()
-
-        @kb.add("enter")
-        def _(event) -> None:
-            value = self.radio.current_value
-            if value:
-                callback = value
-                callback()
-
-        return kb
 
     def on_show(self) -> None:
         self.app.application.layout.focus(self.radio)
