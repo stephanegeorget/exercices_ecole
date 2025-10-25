@@ -26,6 +26,7 @@ from . import (
     francais_imparfait_passe_simple,
     francais_passe_compose_terminaisons,
     francais_passe_simple_terminaisons,
+    francais_mystere_abeilles,
 )
 
 # Les modules d'exercices sont listés ici pour apparaître dans le menu.
@@ -52,6 +53,7 @@ EXERCICES = [
     francais_imparfait_passe_simple,
     francais_passe_compose_terminaisons,
     francais_passe_simple_terminaisons,
+    francais_mystere_abeilles,
 ]
 
 
