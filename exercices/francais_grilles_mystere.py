@@ -58,6 +58,7 @@ class MysteryTheme:
     words: Tuple[MysteryWord, ...]
     grid_size: Tuple[int, int] = (12, 12)
     filler_alphabet: str = string.ascii_uppercase
+    show_words_in_dictation: bool = True
 
     def __post_init__(self) -> None:
         if not self.words:
@@ -266,7 +267,11 @@ class MysterySentenceGame:
                 style = "class:dictation.partial"
             else:
                 style = ""
-            fragments.append((style, f"{display}  ({placement.word.display})\n"))
+            if self.theme.show_words_in_dictation:
+                label = f"  ({placement.word.display})"
+            else:
+                label = ""
+            fragments.append((style, f"{display}{label}\n"))
         return fragments
 
     def _render_message(self) -> FormattedText:
@@ -388,6 +393,7 @@ BEES_THEME = MysteryTheme(
     ),
     grid_size=(10, 10),
     filler_alphabet="ABEILPRSTUXDNOGH",
+    show_words_in_dictation=True,
 )
 
 FOREST_THEME = MysteryTheme(
@@ -404,6 +410,7 @@ FOREST_THEME = MysteryTheme(
     ),
     grid_size=(12, 12),
     filler_alphabet="FORESTLUMIABCDXYZ",
+    show_words_in_dictation=False,
 )
 
 THEMES: Tuple[MysteryTheme, ...] = (
