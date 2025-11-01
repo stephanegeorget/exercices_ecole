@@ -214,12 +214,12 @@ class MysterySentenceGame:
         return Style.from_dict(
             {
                 "grid": "",
-                "grid.cursor": "underline",
+                "grid.cursor": "reverse bold",
                 "grid.word-active": "bg:#005f87 #ffffff bold",
-                "grid.word-complete": "fg:#00d75f bold",
+                "grid.word-complete": "fg:#00d75f bold strikethrough",
                 "dictation.label": "bold",
                 "dictation.active": "bg:#ffd75f #000000 bold",
-                "dictation.complete": "fg:#00d75f bold",
+                "dictation.complete": "fg:#00d75f bold strikethrough",
                 "dictation.partial": "fg:#ffd75f",
                 "message": "fg:#afafd7",
                 "message.success": "fg:#5fdf5f bold",
