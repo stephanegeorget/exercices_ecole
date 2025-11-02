@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 import shutil
-from typing import List
+from typing import List, Sequence, Set
 
 import pydoc
 try:  # ``msvcrt`` is only available on Windows
@@ -88,4 +88,65 @@ def show_lesson(text: str) -> None:
     """Display ``text`` in a pager with a standard quiz hint."""
 
     scroll_text(text, hint="Tape 'q' pour passer au quiz")
+
+
+class CheckboxPrompt:
+    """Interactive helper allowing learners to cocher plusieurs réponses."""
+
+    def __init__(self, prompt: str, options: Sequence[str]) -> None:
+        self.prompt = prompt
+        self.options = list(options)
+        self._selected: Set[int] = set()
+
+    def _render(self) -> None:
+        print()
+        print(self.prompt)
+        print("Tape le numéro pour (dé)cocher, 'v' pour valider, 'r' pour tout décocher.")
+        for index, option in enumerate(self.options, start=1):
+            mark = "☑" if index - 1 in self._selected else "☐"
+            print(f"  {index}. {mark} {option}")
+
+    def ask(self) -> List[int]:
+        """Return the indices selected by the learner (zero-based)."""
+
+        while True:
+            self._render()
+            choice = input("Choix : ").strip().lower()
+
+            if choice in {"v", "valider"}:
+                return sorted(self._selected)
+            if choice in {"r", "reset", "effacer"}:
+                self._selected.clear()
+                continue
+
+            try:
+                numbers = _parse_numbers(choice)
+            except ValueError:
+                print("Entre un numéro valide, plusieurs séparés par des espaces, ou 'v'.")
+                continue
+
+            invalid = [n for n in numbers if n < 1 or n > len(self.options)]
+            if invalid:
+                print("Numéro en dehors de la liste. Réessaie.")
+                continue
+
+            for number in numbers:
+                idx = number - 1
+                if idx in self._selected:
+                    self._selected.remove(idx)
+                else:
+                    self._selected.add(idx)
+
+
+def _parse_numbers(value: str) -> List[int]:
+    """Parse a whitespace-separated list of integers."""
+
+    if not value:
+        raise ValueError("empty")
+
+    numbers: List[int] = []
+    for chunk in value.split():
+        number = int(chunk)
+        numbers.append(number)
+    return numbers
 
