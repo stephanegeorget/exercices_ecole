@@ -90,6 +90,51 @@ def show_lesson(text: str) -> None:
     scroll_text(text, hint="Tape 'q' pour passer au quiz")
 
 
+def format_fraction(
+    numerator: int | str,
+    denominator: int | str,
+    *,
+    prefix: str = "",
+    suffix: str = "",
+    bar: str = "─",
+) -> str:
+    """Return a pretty, multi-line rendering of a fraction.
+
+    Parameters
+    ----------
+    numerator, denominator:
+        Values to show above and below the fraction bar.
+    prefix:
+        Text displayed to the *left* of the bar (for example ``"2 + "`` for a
+        nombre mixte).  The prefix only appears on the middle line; the other
+        lines are padded with spaces so the fraction stays aligned.
+    suffix:
+        Text appended to the middle line, such as an explanatory equality.
+    bar:
+        Character used to draw the horizontal bar.  Defaults to ``"─"`` which
+        renders nicely in most terminals.
+    """
+
+    numerator_str = str(numerator)
+    denominator_str = str(denominator)
+    width = max(len(numerator_str), len(denominator_str), 1)
+
+    top = numerator_str.center(width)
+    middle = bar * width
+    bottom = denominator_str.center(width)
+
+    left_padding = " " * len(prefix)
+    right_padding = " " * len(suffix)
+
+    return "\n".join(
+        (
+            f"{left_padding}{top}{right_padding}",
+            f"{prefix}{middle}{suffix}",
+            f"{left_padding}{bottom}{right_padding}",
+        )
+    )
+
+
 class CheckboxPrompt:
     """Interactive helper allowing learners to cocher plusieurs réponses."""
 
