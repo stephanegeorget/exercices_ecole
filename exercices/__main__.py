@@ -22,6 +22,7 @@ from . import (
     geometrie_notation,
     hist_test,
     histoire_prehistoire_neolithique,
+    histoire_premiers_etats_premieres_ecritures,
     math_nombres_decimaux,
     math_tables_multiplication,
     musique_cest_quoi,
@@ -87,6 +88,7 @@ CATEGORIES = [
         [
             hist_test,
             histoire_prehistoire_neolithique,
+            histoire_premiers_etats_premieres_ecritures,
         ],
     ),
     (
