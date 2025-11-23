@@ -14,6 +14,7 @@ from . import (
     anglais_spelling_bee_contest,
     francais_cloze_dictations,
     francais_grilles_mystere,
+    francais_present_indicatif,
     francais_imparfait_passe_simple,
     francais_passe_compose_terminaisons,
     francais_passe_simple_terminaisons,
@@ -55,6 +56,7 @@ CATEGORIES = [
         [
             francais_cloze_dictations,
             francais_imparfait_passe_simple,
+            francais_present_indicatif,
             francais_passe_compose_terminaisons,
             francais_passe_simple_terminaisons,
             francais_grilles_mystere,
