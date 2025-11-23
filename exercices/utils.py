@@ -222,7 +222,28 @@ class _Box:
         self.width = max(len(line) for line in lines) if lines else 0
 
 
-def _build_box(choice_text: str, label: str) -> _Box:
+_BORDER_STYLES = {
+    "single": {
+        "top_left": "┌",
+        "top_right": "┐",
+        "bottom_left": "└",
+        "bottom_right": "┘",
+        "vertical": "│",
+        "horizontal": "─",
+    },
+    "double": {
+        "top_left": "╔",
+        "top_right": "╗",
+        "bottom_left": "╚",
+        "bottom_right": "╝",
+        "vertical": "║",
+        "horizontal": "═",
+    },
+}
+
+
+def _build_box(choice_text: str, label: str, *, border: str = "single") -> _Box:
+    border_chars = _BORDER_STYLES.get(border, _BORDER_STYLES["single"])
     raw_lines = choice_text.splitlines() or [""]
     labelled = [f"{label}) {raw_lines[0]}"]
     spacer = " " * (len(label) + 2)
@@ -230,10 +251,10 @@ def _build_box(choice_text: str, label: str) -> _Box:
 
     inner_width = max(len(line) for line in labelled)
     padded = [line.ljust(inner_width) for line in labelled]
-    horizontal = "─" * (inner_width + 2)
-    box_lines = [f"┌{horizontal}┐"]
-    box_lines.extend(f"│ {line} │" for line in padded)
-    box_lines.append(f"└{horizontal}┘")
+    horizontal = border_chars["horizontal"] * (inner_width + 2)
+    box_lines = [f"{border_chars['top_left']}{horizontal}{border_chars['top_right']}"]
+    box_lines.extend(f"{border_chars['vertical']} {line} {border_chars['vertical']}" for line in padded)
+    box_lines.append(f"{border_chars['bottom_left']}{horizontal}{border_chars['bottom_right']}")
     return _Box(box_lines)
 
 
@@ -244,7 +265,14 @@ def _render_choices(
     selected: int,
     layout: str,
 ) -> List[str]:
-    boxes = [_build_box(str(choice), letter) for choice, letter in zip(choices, option_letters)]
+    boxes = [
+        _build_box(
+            str(choice),
+            letter,
+            border="double" if idx == selected else "single",
+        )
+        for idx, (choice, letter) in enumerate(zip(choices, option_letters))
+    ]
     highlight = lambda line: f"{CYAN}{BOLD}{line}{RESET}"
     lines: List[str] = ["Utilise les flèches ou tape la lettre puis Entrée."]
 
