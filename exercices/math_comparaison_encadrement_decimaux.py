@@ -121,7 +121,7 @@ Prêt ? Entraîne-toi maintenant sur la comparaison et l'encadrement !
         {
             "question": "Quelle écriture montre un encadrement au centième de 3,789 ?",
             "choices": ["3,7 < 3,789 < 3,8", "3,78 < 3,789 < 3,79", "3,78 < 3,789 < 3,80"],
-            "answer": 2,
+            "answer": 1,
         },
         {
             "question": "Lequel est le plus grand : 8,07 ou 8,7 ?",

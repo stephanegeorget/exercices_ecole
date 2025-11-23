@@ -317,7 +317,7 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
         },
         {
             "question": "Laquelle de ces comparaisons est vraie ?",
-            "choices": ["2,305 > 2,35", "7,08 < 7,8", "5,4 = 5,40"],
+            "choices": ["2,305 > 2,35", "7,08 > 7,8", "5,4 = 5,40"],
             "answer": 2,
         },
         {
@@ -335,7 +335,7 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
             "answer": 0,
         },
         {
-            "question": "Comment écrire 0,125 sous forme de fraction décimale simplifiée ?",
+            "question": "Comment écrire 0,125 sous forme de fraction simplifiée ?",
             "choices": [
                 format_fraction(125, 1000),
                 format_fraction(1, 8),
