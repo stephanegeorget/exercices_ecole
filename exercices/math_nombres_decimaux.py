@@ -352,7 +352,7 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
         },
     ]
 
-    print("Quiz : réponds à chaque question en choisissant le numéro de la bonne réponse.")
+    print("Quiz : réponds à chaque question en choisissant la lettre de la bonne réponse (a, b, c...).")
     score = 0
     for i, q in enumerate(questions, start=1):
         question_label = f"Question {i}: "
@@ -365,26 +365,27 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
         else:
             print(f"\n{question_label}")
 
-        for j, choice in enumerate(q["choices"], start=1):
+        option_letters = [chr(ord("a") + idx) for idx in range(len(q["choices"]))]
+        for letter, choice in zip(option_letters, q["choices"]):
             choice_lines = str(choice).splitlines()
-            prefix = f"  {j}. "
+            prefix = f"  {letter}) "
             print(prefix + choice_lines[0])
             continuation = " " * len(prefix)
             for extra_line in choice_lines[1:]:
                 print(f"{continuation}{extra_line}")
-        try:
-            student = int(input("Votre réponse : ")) - 1
-        except ValueError:
-            student = -1
+
+        student_input = input("Votre réponse (lettre) : ").strip().lower()
+        student = option_letters.index(student_input) if student_input in option_letters else -1
         correct = q["answer"]
         correct_text = q["choices"][correct]
+        correct_letter = option_letters[correct]
         if student == correct:
             print(f"{GREEN}Exact ! ✅{RESET}")
             score += 1
         else:
             correct_lines = str(correct_text).splitlines()
             print(
-                f"{RED}Non, la bonne réponse était {correct + 1}. {correct_lines[0]} ❌{RESET}"
+                f"{RED}Non, la bonne réponse était {correct_letter}) {correct_lines[0]} ❌{RESET}"
             )
             for extra_line in correct_lines[1:]:
                 print(f"{RED}   {extra_line}{RESET}")
