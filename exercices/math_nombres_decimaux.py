@@ -93,101 +93,101 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
         {
             "question": "Quand une fraction est-elle supérieure à 1 ?",
             "choices": [
-                "Quand le numérateur est supérieur au dénominateur",
                 "Quand les deux sont égaux",
+                "Quand le numérateur est supérieur au dénominateur",
                 "Quand le dénominateur est supérieur",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "Quelle condition rend une fraction décimale ?",
             "choices": [
-                "Un dénominateur égal à 1, 10, 100, 1000...",
                 "Un numérateur pair obligatoire",
+                "Un dénominateur égal à 1, 10, 100, 1000...",
                 "Un dénominateur toujours impair",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "Comment additionner des fractions décimales de même dénominateur ?",
             "choices": [
-                "On additionne les numérateurs et on garde le dénominateur",
                 "On additionne les dénominateurs",
                 "On multiplie numérateurs et dénominateurs",
+                "On additionne les numérateurs et on garde le dénominateur",
             ],
-            "answer": 0,
+            "answer": 2,
         },
         {
             "question": "Comment écrire le pourcentage a % en fraction ?",
             "choices": [
-                "a/100",
                 "100/a",
                 "a/10",
+                "a/100",
             ],
-            "answer": 0,
+            "answer": 2,
         },
         {
             "question": "Quelle affirmation décrit un nombre décimal ?",
             "choices": [
-                "Il peut s'écrire comme une fraction décimale",
                 "Il est toujours entier",
+                "Il peut s'écrire comme une fraction décimale",
                 "Il ne peut jamais s'écrire en fraction",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "Comment appelle-t-on l'écriture d'un nombre décimal avec une virgule ?",
             "choices": [
-                "Écriture décimale",
                 "Écriture fractionnaire",
                 "Écriture scientifique",
+                "Écriture décimale",
             ],
-            "answer": 0,
+            "answer": 2,
         },
         {
             "question": "Qu'est-ce qu'un nombre mixte ?",
             "choices": [
-                "Somme d'un entier et d'une fraction inférieure à 1",
                 "Une fraction dont le dénominateur est 1",
+                "Somme d'un entier et d'une fraction inférieure à 1",
                 "Un entier négatif",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "Que signifie comparer deux nombres ?",
             "choices": [
+                "Les multiplier",
                 "Dire s'ils sont égaux ou lequel est plus grand",
                 "Les additionner",
-                "Les multiplier",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "Quelles étapes suivent-on pour comparer deux décimaux ?",
             "choices": [
-                "Comparer la partie entière puis les dixièmes, centièmes...",
                 "Comparer uniquement le dernier chiffre",
                 "Comparer seulement les parties entières",
+                "Comparer la partie entière puis les dixièmes, centièmes...",
             ],
-            "answer": 0,
+            "answer": 2,
         },
         {
             "question": "Que signifie encadrer ou intercaler un nombre ?",
             "choices": [
-                "Trouver deux nombres de part et d'autre ou un nombre entre deux",
                 "Arrondir au plus proche entier",
                 "Diviser par 10",
+                "Trouver deux nombres de part et d'autre ou un nombre entre deux",
             ],
-            "answer": 0,
+            "answer": 2,
         },
         {
             "question": "Qu'est-ce qu'une valeur arrondie d'un décimal ?",
             "choices": [
-                "Le nombre (entier, ou avec 1 ou 2 décimales) le plus proche",
                 "La valeur exacte de la fraction",
                 "Toujours la partie entière",
+                "Le nombre (entier, ou avec 1 ou 2 décimales) le plus proche",
             ],
-            "answer": 0,
+            "answer": 2,
         },
         {
             "question": f"Dans la fraction suivante, quel est le numérateur ?\n{indent_block(format_fraction(3, 5), '    ')}",
@@ -202,20 +202,20 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
         {
             "question": "Que sépare la virgule dans une écriture décimale ?",
             "choices": [
-                "La partie entière et la partie décimale",
                 "Le numérateur et le dénominateur",
+                "La partie entière et la partie décimale",
                 "Deux nombres sans lien",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "À quoi sert le tableau de numération décimale ?",
             "choices": [
+                "Ajouter deux fractions",
                 "Repérer unités, dixièmes, centièmes, etc.",
                 "Ranger uniquement les entiers pairs",
-                "Ajouter deux fractions",
             ],
-            "answer": 0,
+            "answer": 1,
         },
         {
             "question": "Quelle partie d'un nombre décimal se trouve avant la virgule ?",
