@@ -23,6 +23,8 @@ from . import (
     hist_test,
     histoire_prehistoire_neolithique,
     histoire_premiers_etats_premieres_ecritures,
+    math_comparaison_encadrement_decimaux,
+    math_nombres_entiers_et_decimaux,
     math_nombres_decimaux,
     math_tables_multiplication,
     musique_cest_quoi,
@@ -63,6 +65,8 @@ CATEGORIES = [
         [
             math_tables_multiplication,
             math_nombres_decimaux,
+            math_comparaison_encadrement_decimaux,
+            math_nombres_entiers_et_decimaux,
             geometrie_appartenance,
             geometrie_cercles_disques,
             geometrie_notation,
@@ -98,6 +102,7 @@ CATEGORIES = [
         ],
     ),
 ]
+
 def update_and_restart():
     """Met à jour le dépôt et ses dépendances, puis redémarre le programme."""
     repo_dir = Path(__file__).resolve().parent.parent

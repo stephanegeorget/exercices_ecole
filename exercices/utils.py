@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 from typing import List, Sequence, Set
 
 import pydoc
@@ -15,6 +16,17 @@ try:  # ``msvcrt`` is only available on Windows
     import msvcrt
 except Exception:  # pragma: no cover - import will fail on non-Windows
     msvcrt = None  # type: ignore[assignment]
+try:  # Arrow-key handling on POSIX
+    import termios
+    import tty
+except Exception:  # pragma: no cover - not available everywhere
+    termios = None  # type: ignore[assignment]
+    tty = None  # type: ignore[assignment]
+
+
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
 
 
 def scroll_text(text: str, exit_letter: str = "q", hint: str | None = None) -> None:
@@ -133,6 +145,209 @@ def format_fraction(
             f"{left_padding}{bottom}{right_padding}",
         )
     )
+
+
+def ask_choice_with_navigation(
+    choices: Sequence[str], *, horizontal_threshold: int = 120, exit_keys: Sequence[str] = ("q",)
+) -> tuple[int | None, List[str], bool]:
+    """Display choices in roomy boxes and let the learner pick with arrows or letters.
+
+    The layout automatically switches between a horizontal row (controlled with
+    the left/right arrows) and a vertical stack (controlled with the up/down
+    arrows) depending on the available terminal width.  Regardless of layout,
+    the learner can always type the associated letter (a, b, c, …) and press
+    Enter.  Learners can also press any of the ``exit_keys`` (defaults to
+    ``("q",)``) to abandon the quiz immediately.  Returns the selected index,
+    the letter list, and a flag telling whether an exit was requested.
+    """
+
+    option_letters = [chr(ord("a") + idx) for idx in range(len(choices))]
+    exit_letters = {key.lower() for key in exit_keys}
+
+    def _handle_text_answer(raw: str) -> tuple[int | None, List[str], bool]:
+        answer = raw.strip().lower()
+        if answer in exit_letters:
+            return None, option_letters, True
+        try:
+            return option_letters.index(answer), option_letters, False
+        except ValueError:
+            return -1, option_letters, False
+
+    if not sys.stdin.isatty():
+        # Non-interactive environments: fall back to a simple prompt but keep
+        # the spaced-out display for readability.
+        _render_choices(option_letters, choices, selected=-1, layout="vertical")
+        return _handle_text_answer(input("Votre réponse (lettre) : "))
+
+    layout = _pick_layout(choices, option_letters, horizontal_threshold)
+    selected = 0
+    previous_lines = 0
+
+    while True:
+        lines = _render_choices(option_letters, choices, selected=selected, layout=layout)
+        _rewrite_block(lines, previous_lines)
+        previous_lines = len(lines)
+
+        key = _read_key()
+        if key is None:
+            return _handle_text_answer(input("Votre réponse (lettre) : "))
+
+        if key in exit_letters:
+            return None, option_letters, True
+
+        if key in option_letters:
+            return option_letters.index(key), option_letters, False
+        if key == "ENTER":
+            return selected, option_letters, False
+
+        if layout == "horizontal":
+            if key == "RIGHT":
+                selected = (selected + 1) % len(choices)
+            elif key == "LEFT":
+                selected = (selected - 1) % len(choices)
+        else:
+            if key == "DOWN":
+                selected = (selected + 1) % len(choices)
+            elif key == "UP":
+                selected = (selected - 1) % len(choices)
+
+
+def _pick_layout(
+    choices: Sequence[str], option_letters: Sequence[str], horizontal_threshold: int
+) -> str:
+    term_width = shutil.get_terminal_size(fallback=(horizontal_threshold, 24)).columns
+    boxes = [_build_box(str(choice), letter) for choice, letter in zip(choices, option_letters)]
+    total_width = sum(box.width for box in boxes) + (len(boxes) - 1) * 2
+    if len(boxes) <= 3 and total_width <= min(term_width, horizontal_threshold):
+        return "horizontal"
+    return "vertical"
+
+
+class _Box:
+    def __init__(self, lines: List[str]):
+        self.lines = lines
+        self.width = max(len(line) for line in lines) if lines else 0
+
+
+_BORDER_STYLES = {
+    "single": {
+        "top_left": "┌",
+        "top_right": "┐",
+        "bottom_left": "└",
+        "bottom_right": "┘",
+        "vertical": "│",
+        "horizontal": "─",
+    },
+    "double": {
+        "top_left": "╔",
+        "top_right": "╗",
+        "bottom_left": "╚",
+        "bottom_right": "╝",
+        "vertical": "║",
+        "horizontal": "═",
+    },
+}
+
+
+def _build_box(choice_text: str, label: str, *, border: str = "single") -> _Box:
+    border_chars = _BORDER_STYLES.get(border, _BORDER_STYLES["single"])
+    raw_lines = choice_text.splitlines() or [""]
+    labelled = [f"{label}) {raw_lines[0]}"]
+    spacer = " " * (len(label) + 2)
+    labelled.extend(f"{spacer}{line}" for line in raw_lines[1:])
+
+    inner_width = max(len(line) for line in labelled)
+    padded = [line.ljust(inner_width) for line in labelled]
+    horizontal = border_chars["horizontal"] * (inner_width + 2)
+    box_lines = [f"{border_chars['top_left']}{horizontal}{border_chars['top_right']}"]
+    box_lines.extend(f"{border_chars['vertical']} {line} {border_chars['vertical']}" for line in padded)
+    box_lines.append(f"{border_chars['bottom_left']}{horizontal}{border_chars['bottom_right']}")
+    return _Box(box_lines)
+
+
+def _render_choices(
+    option_letters: Sequence[str],
+    choices: Sequence[str],
+    *,
+    selected: int,
+    layout: str,
+) -> List[str]:
+    boxes = [
+        _build_box(
+            str(choice),
+            letter,
+            border="double" if idx == selected else "single",
+        )
+        for idx, (choice, letter) in enumerate(zip(choices, option_letters))
+    ]
+    highlight = lambda line: f"{CYAN}{BOLD}{line}{RESET}"
+    lines: List[str] = [
+        "Utilise les flèches ou tape la lettre puis Entrée. Tape 'q' pour revenir au menu."
+    ]
+
+    if layout == "horizontal":
+        max_height = max(len(box.lines) for box in boxes)
+        normalised: List[List[str]] = []
+        for idx, box in enumerate(boxes):
+            padded = box.lines + [" " * box.width] * (max_height - len(box.lines))
+            if idx == selected:
+                padded = [highlight(line) for line in padded]
+            normalised.append(padded)
+
+        for row in range(max_height):
+            row_chunks = [box[row] for box in normalised]
+            lines.append("  ".join(row_chunks))
+        lines.append("")
+    else:
+        for idx, box in enumerate(boxes):
+            content = box.lines
+            if idx == selected:
+                content = [highlight(line) for line in content]
+            lines.extend(content)
+            lines.append("")
+
+    return lines
+
+
+def _rewrite_block(lines: Sequence[str], previous_lines: int) -> None:
+    if previous_lines:
+        for _ in range(previous_lines):
+            print("\033[F\033[K", end="")
+    for line in lines:
+        print(line)
+
+
+def _read_key() -> str | None:
+    if os.name == "nt" and msvcrt is not None:  # pragma: no cover - Windows
+        key = msvcrt.getwch()
+        if key in ("\r", "\n"):
+            return "ENTER"
+        if key in ("\x00", "\xe0"):
+            arrow = msvcrt.getwch()
+            return {"K": "LEFT", "M": "RIGHT", "H": "UP", "P": "DOWN"}.get(arrow)
+        return key.lower()
+
+    if termios is None or tty is None or not sys.stdin.isatty():
+        return None
+
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        char = sys.stdin.read(1)
+        if char in ("\r", "\n"):
+            return "ENTER"
+        if char == "\x1b":
+            seq = sys.stdin.read(2)
+            return {
+                "[A": "UP",
+                "[B": "DOWN",
+                "[C": "RIGHT",
+                "[D": "LEFT",
+            }.get(seq)
+        return char.lower()
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
 class CheckboxPrompt:
