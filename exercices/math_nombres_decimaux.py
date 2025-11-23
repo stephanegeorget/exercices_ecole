@@ -350,6 +350,46 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
             "choices": ["2,44", "2,46", "2,51"],
             "answer": 1,
         },
+        {
+            "question": "Quel nombre décimal est le plus grand ?",
+            "choices": ["3,256", "3,265", "3,206"],
+            "answer": 1,
+        },
+        {
+            "question": "Quels chiffres regardes-tu d'abord pour comparer 9,105 et 9,15 ?",
+            "choices": ["Les unités", "Les dixièmes", "Les millièmes"],
+            "answer": 1,
+        },
+        {
+            "question": "Quel est l'ordre croissant correct ?",
+            "choices": ["10,03 < 10,3 < 10,30", "10,3 < 10,03 < 10,30", "10,03 < 10,30 < 10,3"],
+            "answer": 0,
+        },
+        {
+            "question": "Sur une droite graduée de 5 à 6, où placer 5,48 ?",
+            "choices": ["Un peu avant la moitié", "Juste après la moitié", "Tout au bout"],
+            "answer": 0,
+        },
+        {
+            "question": "Combien font 4,25 + 0,7 ?",
+            "choices": ["4,32", "4,95", "4,175"],
+            "answer": 1,
+        },
+        {
+            "question": "Laquelle de ces expressions vaut 7,63 ?",
+            "choices": ["7 + 0,36", "7 + 0,63", "7 + 0,603"],
+            "answer": 1,
+        },
+        {
+            "question": "Quelle écriture décimale correspond à 3 + 0,05 ?",
+            "choices": ["3,5", "3,05", "3,005"],
+            "answer": 1,
+        },
+        {
+            "question": "Un jeu coûte 12,80 € et tu as 20 €. Quelle somme restera-t-il après l'achat ?",
+            "choices": ["7,2 €", "7,30 €", "7,20 €"],
+            "answer": 2,
+        },
     ]
 
     print(
