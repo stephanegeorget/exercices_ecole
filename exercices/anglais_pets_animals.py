@@ -179,10 +179,16 @@ def translation_flashcards() -> None:
     sample = random.sample(PETS_TRANSLATIONS, k=min(5, len(PETS_TRANSLATIONS)))
     for french, english in sample:
         reply = input(f"Comment dit-on « {french} » en anglais ? ").strip().lower()
-        if reply == english:
+
+        acceptable = {english}
+        if french == "tortue":
+            acceptable.add("tortoise")
+
+        if reply in acceptable:
             print(f"{GREEN}Yes, « {french} » is {english}.{RESET}")
         else:
-            print(f"{RED}The correct word is {english}.{RESET}")
+            alternatives = ", ".join(sorted(acceptable))
+            print(f"{RED}The correct word is {alternatives}.{RESET}")
     print()
 
 

@@ -166,7 +166,7 @@ Prêt ? Entraîne-toi maintenant sur la comparaison et l'encadrement !
         {
             "question": "Sur une droite graduée de 5 à 6, où placer 5,48 ?",
             "choices": ["Un peu avant la moitié", "Juste après la moitié", "Tout au bout"],
-            "answer": 1,
+            "answer": 0,
         },
     ]
 

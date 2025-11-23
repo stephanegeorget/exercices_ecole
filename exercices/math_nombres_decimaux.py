@@ -163,7 +163,7 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
             "answer": 1,
         },
         {
-            "question": "Quelles étapes suivent-on pour comparer deux décimaux ?",
+            "question": "Quelles étapes suit-on pour comparer deux décimaux ?",
             "choices": [
                 "Comparer uniquement le dernier chiffre",
                 "Comparer seulement les parties entières",

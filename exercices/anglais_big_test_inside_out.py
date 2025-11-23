@@ -247,7 +247,7 @@ QUESTIONS = [
         "answer": 2,
     },
     {
-        "prompt": "Identify the sentence asking for a name.\nIdentifie la phrase qui demande un nom.",
+        "prompt": "Identify the sentence asking for your name.\nIdentifie la phrase qui demande ton nom.",
         "options": [
             "What is your name?",
             "Where do you live?",
