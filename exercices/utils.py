@@ -148,28 +148,36 @@ def format_fraction(
 
 
 def ask_choice_with_navigation(
-    choices: Sequence[str], *, horizontal_threshold: int = 120
-) -> tuple[int, List[str]]:
+    choices: Sequence[str], *, horizontal_threshold: int = 120, exit_keys: Sequence[str] = ("q",)
+) -> tuple[int | None, List[str], bool]:
     """Display choices in roomy boxes and let the learner pick with arrows or letters.
 
     The layout automatically switches between a horizontal row (controlled with
     the left/right arrows) and a vertical stack (controlled with the up/down
     arrows) depending on the available terminal width.  Regardless of layout,
     the learner can always type the associated letter (a, b, c, …) and press
-    Enter.  Returns the selected index and the letter list.
+    Enter.  Learners can also press any of the ``exit_keys`` (defaults to
+    ``("q",)``) to abandon the quiz immediately.  Returns the selected index,
+    the letter list, and a flag telling whether an exit was requested.
     """
 
     option_letters = [chr(ord("a") + idx) for idx in range(len(choices))]
+    exit_letters = {key.lower() for key in exit_keys}
+
+    def _handle_text_answer(raw: str) -> tuple[int | None, List[str], bool]:
+        answer = raw.strip().lower()
+        if answer in exit_letters:
+            return None, option_letters, True
+        try:
+            return option_letters.index(answer), option_letters, False
+        except ValueError:
+            return -1, option_letters, False
 
     if not sys.stdin.isatty():
         # Non-interactive environments: fall back to a simple prompt but keep
         # the spaced-out display for readability.
         _render_choices(option_letters, choices, selected=-1, layout="vertical")
-        answer = input("Votre réponse (lettre) : ").strip().lower()
-        try:
-            return option_letters.index(answer), option_letters
-        except ValueError:
-            return -1, option_letters
+        return _handle_text_answer(input("Votre réponse (lettre) : "))
 
     layout = _pick_layout(choices, option_letters, horizontal_threshold)
     selected = 0
@@ -182,16 +190,15 @@ def ask_choice_with_navigation(
 
         key = _read_key()
         if key is None:
-            answer = input("Votre réponse (lettre) : ").strip().lower()
-            try:
-                return option_letters.index(answer), option_letters
-            except ValueError:
-                return -1, option_letters
+            return _handle_text_answer(input("Votre réponse (lettre) : "))
+
+        if key in exit_letters:
+            return None, option_letters, True
 
         if key in option_letters:
-            return option_letters.index(key), option_letters
+            return option_letters.index(key), option_letters, False
         if key == "ENTER":
-            return selected, option_letters
+            return selected, option_letters, False
 
         if layout == "horizontal":
             if key == "RIGHT":
@@ -274,7 +281,9 @@ def _render_choices(
         for idx, (choice, letter) in enumerate(zip(choices, option_letters))
     ]
     highlight = lambda line: f"{CYAN}{BOLD}{line}{RESET}"
-    lines: List[str] = ["Utilise les flèches ou tape la lettre puis Entrée."]
+    lines: List[str] = [
+        "Utilise les flèches ou tape la lettre puis Entrée. Tape 'q' pour revenir au menu."
+    ]
 
     if layout == "horizontal":
         max_height = max(len(box.lines) for box in boxes)

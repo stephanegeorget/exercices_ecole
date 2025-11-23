@@ -183,6 +183,7 @@ Relis les définitions, puis essaie le quiz pour vérifier tes repères sur les 
     print(
         "Quiz : réponds à chaque question en choisissant la lettre de la bonne réponse (a, b, c...)\n"
         "Astuce : utilise les flèches pour naviguer entre les propositions ou tape directement la lettre."
+        " Tape 'q' à tout moment pour retourner au menu précédent."
     )
     score = 0
     for i, q in enumerate(questions, start=1):
@@ -196,7 +197,10 @@ Relis les définitions, puis essaie le quiz pour vérifier tes repères sur les 
         else:
             print(f"\n{question_label}")
 
-        student, option_letters = ask_choice_with_navigation(q["choices"])
+        student, option_letters, quit_requested = ask_choice_with_navigation(q["choices"])
+        if quit_requested:
+            print("\nRetour au menu Mathématiques demandé. Fin du quiz.\n")
+            return
         correct = q["answer"]
         correct_text = q["choices"][correct]
         correct_letter = option_letters[correct]
