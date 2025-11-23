@@ -133,11 +133,11 @@ Relis les définitions, puis essaie le quiz pour vérifier tes repères sur les 
         {
             "question": "Quel est l'arrondi de 9,748 au dixième ?",
             "choices": ["9,7", "9,8", "9,74"],
-            "answer": 1,
+            "answer": 0,
         },
         {
             "question": "Quelle comparaison est vraie ?",
-            "choices": ["4,09 > 4,9", "6,105 < 6,15", "7,2 = 7,20"],
+            "choices": ["4,09 > 4,9", "6,105 > 6,15", "7,2 = 7,20"],
             "answer": 2,
         },
         {
