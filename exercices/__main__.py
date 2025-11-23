@@ -23,6 +23,7 @@ from . import (
     hist_test,
     histoire_prehistoire_neolithique,
     histoire_premiers_etats_premieres_ecritures,
+    math_comparaison_encadrement_decimaux,
     math_nombres_entiers_et_decimaux,
     math_nombres_decimaux,
     math_tables_multiplication,
@@ -64,6 +65,7 @@ CATEGORIES = [
         [
             math_tables_multiplication,
             math_nombres_decimaux,
+            math_comparaison_encadrement_decimaux,
             math_nombres_entiers_et_decimaux,
             geometrie_appartenance,
             geometrie_cercles_disques,

@@ -91,6 +91,51 @@ Relis ces rappels, puis lance le quiz pour t'entraîner à reconnaître les déf
 
     questions = [
         {
+            "question": "Qu'est-ce qu'un nombre décimal ?",
+            "choices": [
+                "Un nombre qui peut s'écrire sous forme de fraction décimale",
+                "Un nombre uniquement entier",
+                "Un nombre qui n'a pas de partie entière",
+            ],
+            "answer": 0,
+        },
+        {
+            "question": "Qu'est-ce qu'une fraction décimale ?",
+            "choices": [
+                "Une fraction dont le dénominateur vaut 10, 100, 1000...",
+                "Une fraction qui a forcément un dénominateur impair",
+                "Une fraction qui représente un nombre entier",
+            ],
+            "answer": 0,
+        },
+        {
+            "question": "Quelle partie d'un nombre décimal se trouve avant la virgule ?",
+            "choices": [
+                "La partie décimale",
+                "La partie entière",
+                "La partie négative",
+            ],
+            "answer": 1,
+        },
+        {
+            "question": "Que sépare la virgule dans une écriture décimale ?",
+            "choices": [
+                "Le numérateur et le dénominateur",
+                "La partie entière et la partie décimale",
+                "Deux nombres entiers sans lien",
+            ],
+            "answer": 1,
+        },
+        {
+            "question": "À quoi sert le tableau de numération décimale ?",
+            "choices": [
+                "À repérer les unités, dixièmes, centièmes, etc.",
+                "À ranger uniquement les entiers pairs",
+                "À additionner deux fractions",
+            ],
+            "answer": 0,
+        },
+        {
             "question": f"Dans la fraction suivante, quel est le numérateur ?\n{indent_block(format_fraction(3, 5), '    ')}",
             "choices": ["3", "5", "8"],
             "answer": 0,
