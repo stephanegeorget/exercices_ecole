@@ -39,9 +39,12 @@ def main() -> None:
 - Exemple : 12,305 = 12 unités + 3 dixièmes + 5 millièmes.
 
 {BOLD}3) Fractions décimales et écriture à virgule{RESET}
-- Une {BOLD}fraction décimale{RESET} a un dénominateur 10, 100, 1000... par exemple {indent_block(tenth)}.
+- Une {BOLD}fraction décimale{RESET} a un dénominateur 10, 100, 1000... par exemple
+{indent_block(tenth)}.
 - Elle se convertit facilement en écriture à virgule : on divise le numérateur par 10, 100, 1000...
-- {indent_block(quarter)} équivaut à {indent_block(decimal_quarter)} donc à 0,25 en écriture décimale.
+- {indent_block(quarter)}
+  équivaut à {indent_block(decimal_quarter)}
+  donc à 0,25 en écriture décimale.
 
 {BOLD}4) Nombre mixte et valeur numérique{RESET}
 - Un {BOLD}nombre mixte{RESET} combine partie entière et fraction :
