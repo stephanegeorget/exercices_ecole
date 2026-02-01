@@ -5,7 +5,7 @@ from __future__ import annotations
 DISPLAY_NAME = "Français : Présent de l'impératif"
 
 from .logger import log_result
-from .utils import show_lesson
+from .utils import ask_choice_with_navigation, show_lesson
 
 LESSON = """
 📚 **Le présent de l'impératif : donner un ordre, un conseil ou une consigne**
@@ -178,48 +178,49 @@ EXERCISES = [
     {
         "title": "Exercice 4",
         "instruction": "Indiquez la valeur des verbes à l'impératif.",
+        "choices": ["ordre", "conseil", "interdiction"],
         "questions": [
             {
                 "prompt": "1. Éteins la lumière ; je voudrais dormir.",
-                "answers": ["ordre"],
+                "answer": 0,
                 "explanation": "On donne un ordre.",
             },
             {
                 "prompt": "2. Faites attention ; une sorcière habite dans cette forêt.",
-                "answers": ["conseil", "avertissement"],
-                "explanation": "On donne un conseil/avertissement.",
+                "answer": 1,
+                "explanation": "C'est un conseil (mise en garde).",
             },
             {
                 "prompt": "3. N'envoie pas cette lettre : je ne l'ai pas encore signée.",
-                "answers": ["interdiction", "defense", "défense"],
-                "explanation": "Forme négative = interdiction.",
+                "answer": 2,
+                "explanation": "Forme négative : interdiction.",
             },
             {
                 "prompt": "4. Emmène Médor chez le vétérinaire.",
-                "answers": ["ordre", "consigne"],
-                "explanation": "On donne une consigne/ordre.",
+                "answer": 0,
+                "explanation": "On donne un ordre.",
             },
             {
                 "prompt": (
                     "5. Ne traverse la rue que lorsque le petit bonhomme est vert."
                 ),
-                "answers": ["consigne", "interdiction", "regle", "règle"],
-                "explanation": "C'est une règle de sécurité (consigne).",
+                "answer": 2,
+                "explanation": "C'est une règle formulée comme une interdiction.",
             },
             {
                 "prompt": "6. Viens t'asseoir à côté de moi.",
-                "answers": ["invitation", "ordre"],
-                "explanation": "On invite quelqu'un à s'asseoir.",
+                "answer": 1,
+                "explanation": "C'est un conseil/une invitation.",
             },
             {
                 "prompt": "7. Taisez-vous !",
-                "answers": ["ordre", "interdiction"],
+                "answer": 0,
                 "explanation": "On donne un ordre direct.",
             },
             {
                 "prompt": "8. Jouons ensemble.",
-                "answers": ["invitation", "proposition", "encouragement"],
-                "explanation": "On propose de jouer ensemble.",
+                "answer": 1,
+                "explanation": "C'est une proposition (conseil).",
             },
         ],
     },
@@ -230,21 +231,41 @@ def _normalise_answer(answer: str) -> str:
     return answer.strip().lower().replace("’", "'")
 
 
-def _run_quiz(questions: list[dict[str, object]]) -> None:
+def _run_quiz(
+    questions: list[dict[str, object]], *, choices: list[str] | None = None
+) -> None:
     score = 0
     total = len(questions)
     for index, question in enumerate(questions, start=1):
         print(f"\nQuestion {index}")
         print(question["prompt"])
-        answer = _normalise_answer(input("Ta réponse : "))
-        valid = {_normalise_answer(item) for item in question["answers"]}
-        if answer in valid:
-            print("✅ Bravo !")
-            score += 1
+        if choices:
+            student, option_letters, quit_requested = ask_choice_with_navigation(choices)
+            if quit_requested:
+                print("\nRetour au menu demandé. Fin de l'exercice.\n")
+                return
+            correct_index = question["answer"]
+            correct_text = choices[correct_index]
+            correct_letter = option_letters[correct_index]
+            if student == correct_index:
+                print("✅ Bravo !")
+                score += 1
+            else:
+                print(
+                    "❌ Pas tout à fait."
+                    f" ✅ Réponse attendue : {correct_letter}) {correct_text}"
+                )
+                print(f"ℹ️ {question['explanation']}")
         else:
-            print("❌ Pas tout à fait.")
-            print(f"✅ Réponse attendue : {question['answers'][0]}")
-            print(f"ℹ️ {question['explanation']}")
+            answer = _normalise_answer(input("Ta réponse : "))
+            valid = {_normalise_answer(item) for item in question["answers"]}
+            if answer in valid:
+                print("✅ Bravo !")
+                score += 1
+            else:
+                print("❌ Pas tout à fait.")
+                print(f"✅ Réponse attendue : {question['answers'][0]}")
+                print(f"ℹ️ {question['explanation']}")
 
     print(f"\nScore final : {score}/{total}")
     percentage = score / total * 100 if total else 0.0
@@ -263,7 +284,10 @@ def main() -> None:
     """Affiche la leçon puis lance les exercices sur l'impératif."""
 
     show_lesson(LESSON)
-    print("Réponds en toutes lettres (ex. tu, nous, vous, ordre, conseil...).")
+    print(
+        "Réponds en toutes lettres (ex. tu, nous, vous...). "
+        "Pour l'exercice 4, choisis la lettre proposée."
+    )
 
     while True:
         choice = _display_exercise_menu()
@@ -279,7 +303,13 @@ def main() -> None:
 
         print(f"\n=== {exercise['title']} ===")
         print(exercise["instruction"])
-        _run_quiz(exercise["questions"])
+        choices = exercise.get("choices")
+        if choices:
+            print(
+                "Choisis la bonne valeur : ordre, conseil ou interdiction.\n"
+                "Astuce : utilise les flèches ou tape la lettre."
+            )
+        _run_quiz(exercise["questions"], choices=choices)
 
 
 if __name__ == "__main__":
