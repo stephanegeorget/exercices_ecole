@@ -2,6 +2,8 @@ from __future__ import annotations
 
 """Leçon et quiz sur l'imparfait de l'indicatif."""
 
+import sys
+
 DISPLAY_NAME = "Français : Imparfait de l'indicatif"
 
 from .logger import log_result
@@ -101,30 +103,33 @@ def _menu_choice(selected_groups: set[str], mode: str) -> str:
     return input("Votre choix : ").strip()
 
 
+def _inline_sentence_input(before: str, after: str, slot_width: int) -> str:
+    slot = " " * max(1, slot_width)
+
+    if sys.stdout.isatty() and sys.stdin.isatty():
+        print(f"{before}{slot}{after}", end="", flush=True)
+        print(f"\033[{len(after) + len(slot)}D", end="", flush=True)
+        return input()
+
+    return input(before)
+
+
 def _ask_with_preview(question: dict[str, str], mode: str) -> str:
     sentence = question["sentence"]
     base = question["base"]
+    ending = question["ending"]
 
-    while True:
-        if mode == "easy":
-            before, after = sentence.split("____", 1)
-            raw_answer = input(before)
-            completed = f"{before}{raw_answer}{after}"
-        else:
-            target = f"{base}____"
-            if target in sentence:
-                before, after = sentence.split(target, 1)
-                raw_answer = input(before)
-                completed = f"{before}{raw_answer}{after}"
-            else:
-                print(sentence)
-                raw_answer = input("Verbe complet : ")
-                completed = sentence.replace("____", raw_answer)
+    if mode == "easy":
+        before, after = sentence.split("____", 1)
+        return _inline_sentence_input(before, after, len(ending) + 2)
 
-        print(f"Phrase complétée : {completed}")
-        confirm = input("Valider ? [Entrée=oui / r=réécrire] : ").strip().lower()
-        if confirm != "r":
-            return raw_answer
+    target = f"{base}____"
+    if target in sentence:
+        before, after = sentence.split(target, 1)
+        return _inline_sentence_input(before, after, len(base + ending) + 2)
+
+    before, after = sentence.split("____", 1)
+    return _inline_sentence_input(before, after, len(base + ending) + 2)
 
 
 def _run_quiz(selected_groups: set[str], mode: str) -> None:
@@ -143,6 +148,7 @@ def _run_quiz(selected_groups: set[str], mode: str) -> None:
 
     for index, question in enumerate(active_questions, start=1):
         print(f"\nQuestion {index}/{total}")
+        print("Écris le verbe entre parenthèses à l'imparfait, puis appuie sur [ENTER].")
         raw_answer = _ask_with_preview(question, mode)
         answer = _normalise_text(raw_answer)
 
