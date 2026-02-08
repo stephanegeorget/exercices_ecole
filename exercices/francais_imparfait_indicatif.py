@@ -107,18 +107,23 @@ def _ask_with_preview(question: dict[str, str], mode: str) -> str:
 
     while True:
         if mode == "easy":
+            prompt_sentence = sentence
             before, after = sentence.split("____", 1)
-            raw_answer = input(before)
+            print(f"Phrase : {prompt_sentence}")
+            raw_answer = input("Réponse : ")
             completed = f"{before}{raw_answer}{after}"
         else:
             target = f"{base}____"
             if target in sentence:
+                prompt_sentence = sentence.replace(target, "_______", 1)
                 before, after = sentence.split(target, 1)
-                raw_answer = input(before)
+                print(f"Phrase : {prompt_sentence}")
+                raw_answer = input("Réponse : ")
                 completed = f"{before}{raw_answer}{after}"
             else:
-                print(sentence)
-                raw_answer = input("Verbe complet : ")
+                prompt_sentence = sentence.replace("____", "_______")
+                print(f"Phrase : {prompt_sentence}")
+                raw_answer = input("Réponse : ")
                 completed = sentence.replace("____", raw_answer)
 
         print(f"Phrase complétée : {completed}")
