@@ -38,13 +38,18 @@ LESSON = """
 - *voir* → je voyais, nous voyions
 - *être* est irrégulier : j'étais, tu étais, il était, nous étions, vous étiez, ils étaient.
 
-Dans ce quiz, tu complètes seulement **la fin du verbe** (la partie manquante après le radical affiché).
+Dans ce quiz, tu peux t'entraîner en mode **facile** (fin du verbe) ou **difficile** (verbe complet).
 """
 
 GROUP_LABELS = {
     "1": "1er groupe",
     "2": "2ᵉ groupe",
     "3": "3ᵉ groupe",
+}
+
+MODE_LABELS = {
+    "easy": "Facile (écrire la fin du verbe)",
+    "hard": "Difficile (écrire le verbe complet)",
 }
 
 QUESTIONS = [
@@ -59,13 +64,13 @@ QUESTIONS = [
     {"group": "1", "sentence": "L'été, il (plonger) plonge____ dans la rivière.", "base": "plonge", "ending": "ait"},
     {"group": "1", "sentence": "En chorale, nous (crier) cri____ de joie à la fin du spectacle.", "base": "cri", "ending": "ions"},
     {"group": "1", "sentence": "Au marché, vous (payer) pay____ en pièces jaunes.", "base": "pay", "ending": "iez"},
-    # 2e groupe
-    {"group": "2", "sentence": "Le week-end, je (finir) finiss____ mes devoirs tôt.", "base": "finiss", "ending": "ais"},
-    {"group": "2", "sentence": "À la cantine, tu (choisir) choisiss____ toujours le même plat.", "base": "choisiss", "ending": "ais"},
-    {"group": "2", "sentence": "Au printemps, le chiot (grandir) grandiss____ vite.", "base": "grandiss", "ending": "ait"},
-    {"group": "2", "sentence": "En classe, nous (réfléchir) réfléchiss____ avant de répondre.", "base": "réfléchiss", "ending": "ions"},
-    {"group": "2", "sentence": "À ce jeu, vous (réussir) réussiss____ souvent les niveaux difficiles.", "base": "réussiss", "ending": "iez"},
-    {"group": "2", "sentence": "Petites, elles (rougir) rougiss____ de timidité.", "base": "rougiss", "ending": "aient"},
+    # 2e groupe (l'élève doit aussi écrire "iss" en mode facile)
+    {"group": "2", "sentence": "Le week-end, je (finir) fin____ mes devoirs tôt.", "base": "fin", "ending": "issais"},
+    {"group": "2", "sentence": "À la cantine, tu (choisir) chois____ toujours le même plat.", "base": "chois", "ending": "issais"},
+    {"group": "2", "sentence": "Au printemps, le chiot (grandir) grand____ vite.", "base": "grand", "ending": "issait"},
+    {"group": "2", "sentence": "En classe, nous (réfléchir) réfléch____ avant de répondre.", "base": "réfléch", "ending": "issions"},
+    {"group": "2", "sentence": "À ce jeu, vous (réussir) réuss____ souvent les niveaux difficiles.", "base": "réuss", "ending": "issiez"},
+    {"group": "2", "sentence": "Petites, elles (rougir) roug____ de timidité.", "base": "roug", "ending": "issaient"},
     # 3e groupe
     {"group": "3", "sentence": "Hier, la télé (être) ét____ en panne.", "base": "ét", "ending": "ait"},
     {"group": "3", "sentence": "Chaque matin, j' (avoir) av____ du mal à me lever.", "base": "av", "ending": "ais"},
@@ -77,46 +82,82 @@ QUESTIONS = [
 ]
 
 
-def _normalise_ending(raw: str) -> str:
+def _normalise_text(raw: str) -> str:
     answer = raw.strip().lower().replace(" ", "")
     while answer.startswith("-"):
         answer = answer[1:]
     return answer
 
 
-def _menu_choice(selected_groups: set[str]) -> str:
+def _menu_choice(selected_groups: set[str], mode: str) -> str:
     print("\n=== Imparfait de l'indicatif ===")
     print("1. Voir la leçon")
     for group_key in ("1", "2", "3"):
         mark = "x" if group_key in selected_groups else " "
         print(f"{int(group_key) + 1}. [{mark}] {GROUP_LABELS[group_key]}")
-    print("5. Lancer le quiz")
+    print(f"5. Mode actuel : {MODE_LABELS[mode]}")
+    print("6. Lancer le quiz")
     print("0. Retour")
     return input("Votre choix : ").strip()
 
 
-def _run_quiz(selected_groups: set[str]) -> None:
+def _ask_with_preview(question: dict[str, str], mode: str) -> str:
+    sentence = question["sentence"]
+    base = question["base"]
+
+    while True:
+        if mode == "easy":
+            before, after = sentence.split("____", 1)
+            raw_answer = input(before)
+            completed = f"{before}{raw_answer}{after}"
+        else:
+            target = f"{base}____"
+            if target in sentence:
+                before, after = sentence.split(target, 1)
+                raw_answer = input(before)
+                completed = f"{before}{raw_answer}{after}"
+            else:
+                print(sentence)
+                raw_answer = input("Verbe complet : ")
+                completed = sentence.replace("____", raw_answer)
+
+        print(f"Phrase complétée : {completed}")
+        confirm = input("Valider ? [Entrée=oui / r=réécrire] : ").strip().lower()
+        if confirm != "r":
+            return raw_answer
+
+
+def _run_quiz(selected_groups: set[str], mode: str) -> None:
     active_questions = [q for q in QUESTIONS if q["group"] in selected_groups]
     if not active_questions:
         print("\n⚠️ Tu dois cocher au moins un groupe avant de lancer le quiz.")
         return
 
-    print("\nComplète uniquement la fin du verbe (exemple : ais, ait, ions...).")
+    if mode == "easy":
+        print("\nMode facile : écris la fin manquante (ex. ais, issions, aient...).")
+    else:
+        print("\nMode difficile : écris le verbe conjugué en entier.")
+
     score = 0
     total = len(active_questions)
 
     for index, question in enumerate(active_questions, start=1):
         print(f"\nQuestion {index}/{total}")
-        print(question["sentence"])
-        answer = _normalise_ending(input("Terminaison : "))
+        raw_answer = _ask_with_preview(question, mode)
+        answer = _normalise_text(raw_answer)
 
-        if answer == question["ending"]:
+        expected_full = f"{question['base']}{question['ending']}"
+        expected = question["ending"] if mode == "easy" else expected_full
+
+        if answer == expected:
             print("✅ Exact !")
             score += 1
         else:
-            full_form = f"{question['base']}{question['ending']}"
-            print(f"❌ Non. La bonne terminaison était « {question['ending']} ».")
-            print(f"   Forme complète : {full_form}")
+            if mode == "easy":
+                print(f"❌ Non. La bonne fin était « {question['ending']} ».")
+            else:
+                print(f"❌ Non. Le verbe attendu était « {expected_full} ».")
+            print(f"   Forme complète : {expected_full}")
 
     percentage = score / total * 100 if total else 0.0
     print(f"\nScore final : {score}/{total} ({percentage:.1f} %)")
@@ -125,9 +166,10 @@ def _run_quiz(selected_groups: set[str]) -> None:
 
 def main() -> None:
     selected_groups = {"1", "2", "3"}
+    mode = "easy"
 
     while True:
-        choice = _menu_choice(selected_groups)
+        choice = _menu_choice(selected_groups, mode)
 
         if choice == "0":
             return
@@ -142,7 +184,10 @@ def main() -> None:
                 selected_groups.add(group_key)
             continue
         if choice == "5":
-            _run_quiz(selected_groups)
+            mode = "hard" if mode == "easy" else "easy"
+            continue
+        if choice == "6":
+            _run_quiz(selected_groups, mode)
             continue
 
         print("Choix invalide.")
