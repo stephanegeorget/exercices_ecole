@@ -15,6 +15,7 @@ Le menu propose plusieurs exercices :
 - `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
 - `francais_cloze_dictations` fournit un atelier TUI pour créer et pratiquer des dictées à trous avec gestion des textes, des clozes et des tentatives élèves.
 - `francais_present_imperatif` propose une leçon et un quiz sur le présent de l'impératif.
+- `francais_imparfait_indicatif` propose une leçon sur l'imparfait et un quiz à trous où l'élève complète les terminaisons, avec sélection des groupes de verbes à inclure.
 
 Le menu propose également une option pour mettre à jour le logiciel. Elle exécute `git pull`, met à jour les dépendances Python, puis redémarre le programme.
 

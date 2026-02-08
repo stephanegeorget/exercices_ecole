@@ -16,6 +16,7 @@ from . import (
     francais_grilles_mystere,
     francais_present_indicatif,
     francais_present_imperatif,
+    francais_imparfait_indicatif,
     francais_imparfait_passe_simple,
     francais_passe_compose_terminaisons,
     francais_passe_simple_terminaisons,
@@ -56,6 +57,7 @@ CATEGORIES = [
         "Français",
         [
             francais_cloze_dictations,
+            francais_imparfait_indicatif,
             francais_imparfait_passe_simple,
             francais_present_indicatif,
             francais_present_imperatif,
