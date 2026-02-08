@@ -14,6 +14,7 @@ from . import (
     anglais_spelling_bee_contest,
     francais_cloze_dictations,
     francais_grilles_mystere,
+    francais_homophones_a_as_a_on_ont,
     francais_present_indicatif,
     francais_present_imperatif,
     francais_imparfait_passe_simple,
@@ -62,6 +63,7 @@ CATEGORIES = [
             francais_passe_compose_terminaisons,
             francais_passe_simple_terminaisons,
             francais_grilles_mystere,
+            francais_homophones_a_as_a_on_ont,
         ],
     ),
     (
