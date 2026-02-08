@@ -2,6 +2,8 @@ from __future__ import annotations
 
 """Leçon et quiz sur l'imparfait de l'indicatif."""
 
+import sys
+
 DISPLAY_NAME = "Français : Imparfait de l'indicatif"
 
 from .logger import log_result
@@ -101,35 +103,31 @@ def _menu_choice(selected_groups: set[str], mode: str) -> str:
     return input("Votre choix : ").strip()
 
 
+def _inline_sentence_input(before: str, after: str) -> str:
+    if sys.stdout.isatty() and sys.stdin.isatty():
+        print(f"{before}{after}", end="", flush=True)
+        if after:
+            print(f"\033[{len(after)}D", end="", flush=True)
+        return input()
+
+    return input(before)
+
+
 def _ask_with_preview(question: dict[str, str], mode: str) -> str:
     sentence = question["sentence"]
     base = question["base"]
 
-    while True:
-        if mode == "easy":
-            prompt_sentence = sentence
-            before, after = sentence.split("____", 1)
-            print(f"Phrase : {prompt_sentence}")
-            raw_answer = input("Réponse : ")
-            completed = f"{before}{raw_answer}{after}"
-        else:
-            target = f"{base}____"
-            if target in sentence:
-                prompt_sentence = sentence.replace(target, "_______", 1)
-                before, after = sentence.split(target, 1)
-                print(f"Phrase : {prompt_sentence}")
-                raw_answer = input("Réponse : ")
-                completed = f"{before}{raw_answer}{after}"
-            else:
-                prompt_sentence = sentence.replace("____", "_______")
-                print(f"Phrase : {prompt_sentence}")
-                raw_answer = input("Réponse : ")
-                completed = sentence.replace("____", raw_answer)
+    if mode == "easy":
+        before, after = sentence.split("____", 1)
+        return _inline_sentence_input(before, after)
 
-        print(f"Phrase complétée : {completed}")
-        confirm = input("Valider ? [Entrée=oui / r=réécrire] : ").strip().lower()
-        if confirm != "r":
-            return raw_answer
+    target = f"{base}____"
+    if target in sentence:
+        before, after = sentence.split(target, 1)
+        return _inline_sentence_input(before, after)
+
+    before, after = sentence.split("____", 1)
+    return _inline_sentence_input(before, after)
 
 
 def _run_quiz(selected_groups: set[str], mode: str) -> None:
