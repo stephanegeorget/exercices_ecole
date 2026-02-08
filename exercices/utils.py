@@ -196,7 +196,13 @@ def ask_choice_with_navigation(
             return None, option_letters, True
 
         if key in option_letters:
-            return option_letters.index(key), option_letters, False
+            # Keep keyboard-letter shortcuts, but move the visual highlight to
+            # the corresponding option before validating so the selected box
+            # never appears stuck on the first choice.
+            selected = option_letters.index(key)
+            lines = _render_choices(option_letters, choices, selected=selected, layout=layout)
+            _rewrite_block(lines, previous_lines)
+            return selected, option_letters, False
         if key == "ENTER":
             return selected, option_letters, False
 
@@ -409,4 +415,3 @@ def _parse_numbers(value: str) -> List[int]:
         number = int(chunk)
         numbers.append(number)
     return numbers
-
