@@ -51,42 +51,32 @@ Prêt ? On déroule le raisonnement étape par étape.
     show_lesson(lesson)
 
     questions = [
-        # Exercice 2 : compréhension
+        # Exercice 2 (5 questions)
         {
-            "question": "[Exercice 2] Quelle opération représente la recette de la catégorie A ?",
+            "question": "[Exercice 2] Pour calculer une recette, quelle opération relie le nombre de places et le prix d'une place ?",
             "choices": [
-                "63,50 + 100",
-                "100 × 63,50",
-                "100 ÷ 63,50",
+                "Une addition (quantité + prix)",
+                "Une multiplication (quantité × prix)",
+                "Une soustraction (quantité - prix)",
             ],
             "answer": 1,
         },
         {
-            "question": "[Exercice 2] 100 × 63,50 revient à déplacer la virgule de combien de rangs ?",
-            "choices": ["1 rang", "2 rangs", "3 rangs"],
-            "answer": 1,
-        },
-        {
-            "question": "[Exercice 2] Quelle est alors la recette de la catégorie A ?",
-            "choices": ["635 €", "6 350 €", "63 500 €"],
-            "answer": 1,
-        },
-        {
-            "question": "[Exercice 2] Quelle opération représente la recette de la catégorie B ?",
+            "question": "[Exercice 2] Pourquoi, pour la catégorie A (100 places à 63,50 €), choisit-on 100 × 63,50 ?",
             "choices": [
-                "1 000 × 42,30",
-                "42,30 ÷ 1 000",
-                "1 000 + 42,30",
+                "Parce qu'on additionne 63,50 € cent fois, donc c'est une multiplication",
+                "Parce que 100 est plus grand que 63,50",
+                "Parce qu'on doit d'abord diviser par 100",
             ],
             "answer": 0,
         },
         {
-            "question": "[Exercice 2] Multiplier par 1 000 déplace la virgule de...",
-            "choices": ["1 rang", "2 rangs", "3 rangs"],
-            "answer": 2,
+            "question": "[Exercice 2] Quel est le résultat de 100 × 63,50 ?",
+            "choices": ["635 €", "6 350 €", "63 500 €"],
+            "answer": 1,
         },
         {
-            "question": "[Exercice 2] Recette de la catégorie B :",
+            "question": "[Exercice 2] Quel est le résultat de 1 000 × 42,30 pour la catégorie B ?",
             "choices": ["4 230 €", "42 300 €", "423 000 €"],
             "answer": 1,
         },
@@ -95,10 +85,11 @@ Prêt ? On déroule le raisonnement étape par étape.
             "choices": ["48 650 €", "49 650 €", "50 650 €"],
             "answer": 0,
         },
-        # Exercice 3 : produits en ligne
+
+        # Exercice 3 (5 questions)
         {
-            "question": "[Exercice 3a] 12,753 × 100 : la virgule se déplace de...",
-            "choices": ["1 rang", "2 rangs", "3 rangs"],
+            "question": "[Exercice 3] Rappel : multiplier par 100 revient à déplacer la virgule de...",
+            "choices": ["1 rang vers la droite", "2 rangs vers la droite", "3 rangs vers la droite"],
             "answer": 1,
         },
         {
@@ -112,43 +103,38 @@ Prêt ? On déroule le raisonnement étape par étape.
             "answer": 2,
         },
         {
-            "question": "[Exercice 3c] Dans 2,714 × 10 × 100, le facteur global est...",
-            "choices": ["10", "100", "1 000"],
-            "answer": 2,
-        },
-        {
-            "question": "[Exercice 3c] Donc 2,714 × 10 × 100 =",
-            "choices": ["27,14", "271,4", "2 714"],
-            "answer": 2,
-        },
-        {
-            "question": "[Exercice 3d] Dans 14,203 × 100 × 100, le facteur global est...",
-            "choices": ["1 000", "10 000", "100 000"],
+            "question": "[Exercice 3c] 2,714 × 10 × 100 : quel facteur global utilise-t-on ?",
+            "choices": ["100", "1 000", "10 000"],
             "answer": 1,
         },
         {
-            "question": "[Exercice 3d] 14,203 × 10 000 =",
-            "choices": ["142,03", "1 420,3", "142 030"],
+            "question": "[Exercice 3d] 14,203 × 100 × 100 =",
+            "choices": ["1 420,3", "14 203", "142 030"],
             "answer": 2,
         },
-        # Exercice 4 : boutique
+
+        # Exercice 4 (5 questions)
         {
-            "question": "[Exercice 4] Quelle opération modélise la recette des maillots ?",
-            "choices": ["1 000 × 87,99", "87,99 + 1 000", "1 000 ÷ 87,99"],
+            "question": "[Exercice 4] Pour 1 000 maillots à 87,99 €, quel raisonnement est correct ?",
+            "choices": [
+                "On additionne 87,99 € à lui-même 1 000 fois, donc on fait 1 000 × 87,99",
+                "On fait 1 000 + 87,99 car il y a deux nombres",
+                "On fait 87,99 ÷ 1 000 pour trouver une recette",
+            ],
             "answer": 0,
         },
         {
-            "question": "[Exercice 4] Recette des maillots :",
+            "question": "[Exercice 4] Recette des maillots : 1 000 × 87,99 =",
             "choices": ["8 799 €", "87 990 €", "879 900 €"],
             "answer": 1,
         },
         {
-            "question": "[Exercice 4] Quelle opération modélise la recette des équipements ?",
-            "choices": ["100 × 143,40", "143,40 + 100", "143,40 ÷ 100"],
+            "question": "[Exercice 4] Pour 100 équipements à 143,40 €, quelle opération choisir ?",
+            "choices": ["100 × 143,40", "100 + 143,40", "143,40 ÷ 100"],
             "answer": 0,
         },
         {
-            "question": "[Exercice 4] Recette des équipements :",
+            "question": "[Exercice 4] Recette des équipements : 100 × 143,40 =",
             "choices": ["1 434 €", "14 340 €", "143 400 €"],
             "answer": 1,
         },
@@ -156,25 +142,6 @@ Prêt ? On déroule le raisonnement étape par étape.
             "question": "[Exercice 4] Recette totale de la boutique : 87 990 + 14 340 = ?",
             "choices": ["101 330 €", "102 330 €", "103 330 €"],
             "answer": 1,
-        },
-        # Questions de contrôle de raisonnement
-        {
-            "question": "Quand on multiplie un décimal par 100, on obtient en général un nombre...",
-            "choices": [
-                "100 fois plus grand",
-                "100 fois plus petit",
-                "inchangé",
-            ],
-            "answer": 0,
-        },
-        {
-            "question": "Pourquoi la méthode sans poser d'opération fonctionne ici ?",
-            "choices": [
-                "Parce que les facteurs sont 10, 100, 1 000 et on déplace la virgule",
-                "Parce qu'on arrondit tous les prix",
-                "Parce qu'on remplace les multiplications par des divisions",
-            ],
-            "answer": 0,
         },
     ]
 
