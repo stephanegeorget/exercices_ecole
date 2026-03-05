@@ -24,6 +24,7 @@ from . import (
     geometrie_appartenance,
     geometrie_cercles_disques,
     geometrie_notation,
+    geographie_habiter_espaces_agricoles,
     hist_test,
     histoire_prehistoire_neolithique,
     histoire_premiers_etats_premieres_ecritures,
@@ -103,6 +104,12 @@ CATEGORIES = [
             hist_test,
             histoire_prehistoire_neolithique,
             histoire_premiers_etats_premieres_ecritures,
+        ],
+    ),
+    (
+        "Géographie",
+        [
+            geographie_habiter_espaces_agricoles,
         ],
     ),
     (

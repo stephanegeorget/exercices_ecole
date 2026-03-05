@@ -13,6 +13,7 @@ Le menu propose plusieurs exercices :
 - `geometrie_notation` propose une leçon et un quiz sur les segments, droites et demi-droites.
 - `musique_cest_quoi` propose une leçon colorée et un quiz pour découvrir la portée, les notes et les rythmes.
 - `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
+- `geographie_habiter_espaces_agricoles` propose une leçon et un quiz de 40 questions sur les espaces agricoles à faibles densités (Grandes Plaines et Bornéo).
 - `francais_cloze_dictations` fournit un atelier TUI pour créer et pratiquer des dictées à trous avec gestion des textes, des clozes et des tentatives élèves.
 - `francais_present_imperatif` propose une leçon et un quiz sur le présent de l'impératif.
 - `francais_imparfait_indicatif` propose une leçon sur l'imparfait et un quiz à trous où l'élève complète les terminaisons, avec sélection des groupes de verbes à inclure.
