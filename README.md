@@ -11,6 +11,7 @@ Le menu propose plusieurs exercices :
 - `physique_changements_etats` propose une leçon et un quiz sur les changements d'état de la matière.
 - `physique_proprietes_eau_liquide` propose une leçon et un quiz sur quelques propriétés de l'eau liquide.
 - `math_tables_multiplication` propose une leçon et un quiz interactif pour pratiquer une table de multiplication.
+- `math_association_facteurs_images` propose un quiz guidé inspiré d'une fiche en photo, avec associations astucieuses, flèches et parenthèses mises en évidence (3 questions par calcul).
 - `geometrie_notation` propose une leçon et un quiz sur les segments, droites et demi-droites.
 - `musique_cest_quoi` propose une leçon colorée et un quiz pour découvrir la portée, les notes et les rythmes.
 - `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
