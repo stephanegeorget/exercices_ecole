@@ -16,6 +16,7 @@ from . import (
     francais_cloze_dictations,
     francais_grilles_mystere,
     francais_homophones_a_as_a_on_ont,
+    francais_homophones_ai_es_est_et_son_sont,
     francais_present_indicatif,
     francais_present_imperatif,
     francais_imparfait_indicatif,
@@ -71,6 +72,7 @@ CATEGORIES = [
             francais_passe_simple_terminaisons,
             francais_grilles_mystere,
             francais_homophones_a_as_a_on_ont,
+            francais_homophones_ai_es_est_et_son_sont,
         ],
     ),
     (
