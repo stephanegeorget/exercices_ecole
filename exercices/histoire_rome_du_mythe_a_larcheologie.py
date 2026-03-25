@@ -1,4 +1,4 @@
-"""Leçon et quiz sur la fondation de Rome : du mythe à l'archéologie."""
+"""Leçon et quiz sur Rome : du mythe à l'archéologie et à la République."""
 
 from __future__ import annotations
 
@@ -35,12 +35,25 @@ LESSON = textwrap.dedent(
       elle devient une ville structurée entre le VIIIe et le VIe siècle av. J.-C.
     • Le site est organisé autour du Tibre et de collines majeures : Palatin, Aventin, Capitole,
       Quirinal, Viminal, Esquilin et Caelius.
+
+    ⚖️ La République romaine et la citoyenneté
+
+    • En 509 av. J.-C., Rome devient une République.
+    • Les citoyens romains ont des droits (voter, participer à la vie civique) et des devoirs
+      (respecter les lois, servir Rome), et portent la toge comme vêtement civique symbolique.
+    • Les citoyens sont répartis en groupes appelés centuries ; le vote s'arrête dès qu'une majorité
+      est atteinte, ce qui favorise souvent les citoyens les plus riches.
+    • La citoyenneté est limitée : elle est réservée aux hommes nés de parents citoyens ;
+      les femmes et les esclaves en sont exclus.
+    • Durant la République, Rome conquiert un vaste territoire méditerranéen et des hommes politiques
+      utilisent le mythe des origines pour justifier leur pouvoir.
+    • Jules César et son fils adoptif Auguste marquent la fin de la République (27 av. J.-C.).
     """
 ).strip()
 
 
 def main() -> None:
-    """Affiche la leçon puis lance le quiz de 20 questions."""
+    """Affiche la leçon puis lance le quiz de 40 questions."""
 
     show_lesson(LESSON)
     print("\nPlace au quiz ! Réponds en tapant le numéro ou 'vrai/faux' selon les consignes.")
@@ -71,7 +84,7 @@ def main() -> None:
 
     percentage = score / len(QUESTIONS) * 100
     print("\n" + "=" * 70)
-    print(f"Résultat final : {score}/{len(QUESTIONS)} (soit {percentage:.1f} %)")
+    print(f"Résultat final : {score}/{len(QUESTIONS)} (soit {percentage:.1f} %)" )
     if percentage == 100:
         print("Bravo ! Tu maîtrises le chapitre sur Rome. 🥳")
     elif percentage >= 75:
@@ -79,7 +92,7 @@ def main() -> None:
     elif percentage >= 50:
         print("Bon début, relis la leçon et réessaie.")
     else:
-        print("Courage ! Revois le mythe, les dates et les indices archéologiques.")
+        print("Courage ! Revois le mythe, les dates, l'archéologie et la République romaine.")
 
     log_result("histoire_rome_du_mythe_a_larcheologie", percentage)
 
@@ -219,5 +232,137 @@ QUESTIONS: list[dict[str, object]] = [
         "prompt": "20. Mythe et archéologie racontent exactement la même chose, sans différence.",
         "answer": False,
         "explanation": "Le mythe donne un récit fondateur; l'archéologie reconstruit des faits matériels.",
+    },
+    {
+        "type": "single",
+        "prompt": "En quelle année Rome devient-elle une République ?",
+        "options": ["509 av. J.-C.", "753 av. J.-C.", "27 av. J.-C."],
+        "answer": 0,
+        "explanation": "La date de 509 av. J.-C. marque le début de la République romaine.",
+    },
+    {
+        "type": "single",
+        "prompt": "Quel vêtement symbolique porte le citoyen romain ?",
+        "options": ["La toge", "Le kimono", "La chlamyde spartiate"],
+        "answer": 0,
+        "explanation": "Dans la leçon, la toge est le vêtement civique du citoyen romain.",
+    },
+    {
+        "type": "multi",
+        "prompt": "Parmi ces propositions, lesquelles sont des droits du citoyen romain ?",
+        "options": ["Voter", "Participer à la vie civique", "Être esclave", "Refuser toutes les lois"],
+        "answers": {0, 1},
+        "explanation": "Le citoyen dispose de droits politiques, mais aussi de devoirs.",
+    },
+    {
+        "type": "multi",
+        "prompt": "Parmi ces propositions, lesquelles sont des devoirs du citoyen romain ?",
+        "options": ["Respecter les lois", "Servir Rome", "Ne jamais payer d'impôt", "Ignorer les magistrats"],
+        "answers": {0, 1},
+        "explanation": "Le statut civique implique des obligations envers la cité.",
+    },
+    {
+        "type": "single",
+        "prompt": "Comment s'appelle un groupe de citoyens romains dans l'organisation du vote ?",
+        "options": ["Une centurie", "Une tribu gauloise", "Une phalange"],
+        "answer": 0,
+        "explanation": "Chaque groupe de citoyens est nommé 'centurie'.",
+    },
+    {
+        "type": "tf",
+        "prompt": "26. Dans le système des centuries, le vote peut s'arrêter dès qu'une majorité est atteinte.",
+        "answer": True,
+        "explanation": "L'ordre de vote favorise souvent les plus riches.",
+    },
+    {
+        "type": "tf",
+        "prompt": "27. Dans la République romaine, tous les citoyens ont exactement le même poids politique en pratique.",
+        "answer": False,
+        "explanation": "Le système des centuries avantage les citoyens les plus fortunés.",
+    },
+    {
+        "type": "tf",
+        "prompt": "28. La citoyenneté romaine est ouverte aux femmes selon la leçon étudiée.",
+        "answer": False,
+        "explanation": "La citoyenneté politique est réservée aux hommes dans ce cadre.",
+    },
+    {
+        "type": "tf",
+        "prompt": "29. Les esclaves sont exclus de la citoyenneté romaine.",
+        "answer": True,
+        "explanation": "La citoyenneté est limitée et ne les inclut pas.",
+    },
+    {
+        "type": "single",
+        "prompt": "Selon la fiche, à qui la citoyenneté est-elle réservée ?",
+        "options": ["Aux hommes nés de parents citoyens", "À tous les habitants de l'Empire", "Aux seuls soldats étrangers"],
+        "answer": 0,
+        "explanation": "La définition donnée insiste sur une citoyenneté masculine et héréditaire.",
+    },
+    {
+        "type": "single",
+        "prompt": "Quel personnage est cité comme homme politique utilisant le mythe de Rome ?",
+        "options": ["Jules César", "Périclès", "Hammourabi"],
+        "answer": 0,
+        "explanation": "La fiche mentionne Jules César puis Auguste.",
+    },
+    {
+        "type": "single",
+        "prompt": "Quel personnage met fin à la République en 27 av. J.-C. ?",
+        "options": ["Auguste", "Néron", "Romulus"],
+        "answer": 0,
+        "explanation": "Le cours associe 27 av. J.-C. à l'avènement d'Auguste.",
+    },
+    {
+        "type": "tf",
+        "prompt": "33. Pendant la République, Rome conquiert un vaste territoire autour de la Méditerranée.",
+        "answer": True,
+        "explanation": "La puissance romaine s'étend progressivement sur le bassin méditerranéen.",
+    },
+    {
+        "type": "tf",
+        "prompt": "34. Le mythe des origines est parfois utilisé pour justifier les conquêtes de Rome.",
+        "answer": True,
+        "explanation": "Le récit religieux et politique sert à légitimer la domination romaine.",
+    },
+    {
+        "type": "single",
+        "prompt": "La date 27 av. J.-C. se situe après 509 av. J.-C. dans la chronologie.",
+        "options": ["Vrai, car elle est plus proche de l'an 0", "Faux, car 27 est plus grand que 509", "On ne peut pas comparer"],
+        "answer": 0,
+        "explanation": "En av. J.-C., plus le nombre diminue, plus on se rapproche de notre ère.",
+    },
+    {
+        "type": "multi",
+        "prompt": "Quelles collines appartiennent aux sept collines de Rome étudiées ici ?",
+        "options": ["Quirinal", "Viminal", "Esquilin", "Olympe"],
+        "answers": {0, 1, 2},
+        "explanation": "Quirinal, Viminal et Esquilin font partie du relief de Rome antique.",
+    },
+    {
+        "type": "tf",
+        "prompt": "37. Le récit mythique donne une origine symbolique et religieuse à Rome.",
+        "answer": True,
+        "explanation": "Il explique le destin de Rome par l'action des héros et des dieux.",
+    },
+    {
+        "type": "tf",
+        "prompt": "38. L'archéologie repose sur des objets, des traces d'habitat et des vestiges matériels.",
+        "answer": True,
+        "explanation": "Elle s'appuie sur les preuves retrouvées dans les fouilles.",
+    },
+    {
+        "type": "single",
+        "prompt": "Pourquoi faut-il rester prudent face aux récits de fondation ?",
+        "options": ["Ils sont écrits bien après les faits et peuvent mêler légende et politique", "Ils ont tous été dictés directement par Romulus", "Ils sont des textes scientifiques modernes"],
+        "answer": 0,
+        "explanation": "La distance temporelle invite à confronter les textes aux traces archéologiques.",
+    },
+    {
+        "type": "single",
+        "prompt": "Quel résumé est le plus juste ?",
+        "options": ["Mythe et archéologie se complètent pour comprendre Rome", "Seul le mythe compte, les fouilles ne servent à rien", "Seules les fouilles comptent, les textes antiques sont inutiles"],
+        "answer": 0,
+        "explanation": "Le travail d'historien consiste à croiser les sources plutôt qu'à en choisir une seule.",
     },
 ]
