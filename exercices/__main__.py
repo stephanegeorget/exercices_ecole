@@ -31,6 +31,7 @@ from . import (
     hist_test,
     histoire_prehistoire_neolithique,
     histoire_premiers_etats_premieres_ecritures,
+    histoire_rome_du_mythe_a_larcheologie,
     math_comparaison_encadrement_decimaux,
     math_association_facteurs_images,
     math_chapitre_6_calcul_reflechi,
@@ -114,6 +115,7 @@ CATEGORIES = [
             hist_test,
             histoire_prehistoire_neolithique,
             histoire_premiers_etats_premieres_ecritures,
+            histoire_rome_du_mythe_a_larcheologie,
         ],
     ),
     (
