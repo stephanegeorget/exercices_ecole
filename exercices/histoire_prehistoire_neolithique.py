@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 import textwrap
 
 from .logger import log_result
@@ -88,21 +89,25 @@ def ask_true_false(prompt: str, answer: bool, explanation: str) -> bool:
 
 
 def ask_single_choice(prompt: str, options: list[str], answer: int, explanation: str) -> bool:
-    """Pose une question à choix unique."""
+    """Pose une question à choix unique avec options mélangées."""
+
+    indexed_options = list(enumerate(options))
+    random.shuffle(indexed_options)
 
     print(prompt)
-    for idx, option in enumerate(options, start=1):
+    for idx, (_, option) in enumerate(indexed_options, start=1):
         print(f"  {idx}. {option}")
 
     while True:
         raw = input("Votre choix : ").strip()
         if raw.isdigit():
-            index = int(raw) - 1
-            if 0 <= index < len(options):
+            display_index = int(raw) - 1
+            if 0 <= display_index < len(indexed_options):
                 break
         print("Entre un numéro parmi les propositions.")
 
-    if index == answer:
+    original_index = indexed_options[display_index][0]
+    if original_index == answer:
         print("✅ Correct !", explanation)
         return True
     print("❌ Mauvaise réponse.", explanation)
@@ -110,11 +115,17 @@ def ask_single_choice(prompt: str, options: list[str], answer: int, explanation:
 
 
 def ask_multi_choice(prompt: str, options: list[str], answers: set[int], explanation: str) -> bool:
-    """Pose une question à réponses multiples utilisant :class:`CheckboxPrompt`."""
+    """Pose une question à réponses multiples avec options mélangées."""
 
-    widget = CheckboxPrompt(prompt, options)
-    selected = set(widget.ask())
-    if selected == answers:
+    indexed_options = list(enumerate(options))
+    random.shuffle(indexed_options)
+    shuffled_options = [option for _, option in indexed_options]
+
+    widget = CheckboxPrompt(prompt, shuffled_options)
+    selected_display_indexes = set(widget.ask())
+    selected_original_indexes = {indexed_options[index][0] for index in selected_display_indexes}
+
+    if selected_original_indexes == answers:
         print("✅ Exact !", explanation)
         return True
     print("❌ Ce n'était pas le bon ensemble.", explanation)

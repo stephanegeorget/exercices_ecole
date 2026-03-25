@@ -47,7 +47,8 @@ LESSON = textwrap.dedent(
       les femmes et les esclaves en sont exclus.
     • Durant la République, Rome conquiert un vaste territoire méditerranéen et des hommes politiques
       utilisent le mythe des origines pour justifier leur pouvoir.
-    • Jules César et son fils adoptif Auguste marquent la fin de la République (27 av. J.-C.).
+    • Les crises de la fin de la République renforcent des chefs comme Jules César, puis Auguste (son fils adoptif),
+      qui inaugure le Principat en 27 av. J.-C., date retenue comme fin de la République.
     """
 ).strip()
 
@@ -308,7 +309,7 @@ QUESTIONS: list[dict[str, object]] = [
     },
     {
         "type": "single",
-        "prompt": "Quel personnage met fin à la République en 27 av. J.-C. ?",
+        "prompt": "Quel personnage inaugure le Principat en 27 av. J.-C., marquant la fin de la République ?",
         "options": ["Auguste", "Néron", "Romulus"],
         "answer": 0,
         "explanation": "Le cours associe 27 av. J.-C. à l'avènement d'Auguste.",
