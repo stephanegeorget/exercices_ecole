@@ -8,6 +8,7 @@ Le menu propose plusieurs exercices :
 - `anglais_alphabet_couleurs` propose une leçon et plusieurs exercices pour reconnaître l'alphabet à l'oral, écrire les couleurs et se présenter.
 - `anglais_school_uniform` propose 30 fiches de vocabulaire sur l'uniforme scolaire avec descriptions en français, deux quiz à choix multiples avec flèches, puis une recopie guidée avec tirets bas.
 - `hist_test` affiche `La préhistoire c'est ce qu'il y a avant l'histoire.`
+- `histoire_rome_du_mythe_a_larcheologie` propose une leçon et un quiz de 40 questions sur la fondation de Rome, en comparant le récit mythique et les traces archéologiques.
 - `physique_changements_etats` propose une leçon et un quiz sur les changements d'état de la matière.
 - `physique_proprietes_eau_liquide` propose une leçon et un quiz sur quelques propriétés de l'eau liquide.
 - `math_tables_multiplication` propose une leçon et un quiz interactif pour pratiquer une table de multiplication.
