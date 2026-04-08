@@ -29,6 +29,7 @@ from . import (
     geometrie_appartenance,
     geometrie_cercles_disques,
     geometrie_notation,
+    geometrie_triangle_isocele_angles_image,
     geographie_habiter_espaces_agricoles,
     hist_test,
     histoire_prehistoire_neolithique,
@@ -96,6 +97,7 @@ CATEGORIES = [
             geometrie_appartenance,
             geometrie_cercles_disques,
             geometrie_notation,
+            geometrie_triangle_isocele_angles_image,
         ],
     ),
     (
