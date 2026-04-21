@@ -23,6 +23,7 @@ Le menu propose plusieurs exercices :
 - `francais_imparfait_indicatif` propose une leçon sur l'imparfait et un quiz à trous où l'élève complète les terminaisons, avec sélection des groupes de verbes à inclure.
 - `francais_plus_que_parfait_quizz` propose une leçon sur le plus-que-parfait et un quiz à choix multiples (3 réponses par question).
 - `francais_homophones_ai_es_est_et_son_sont` propose une leçon et deux quiz de 15 questions chacun sur les homophones grammaticaux `ai/es/est/et` et `son/sont`.
+- `francais_journal_chat_assassin` propose un quiz de compréhension de lecture en 7 chapitres (Lundi à Samedi), avec 10 questions par chapitre.
 
 Le menu propose également une option pour mettre à jour le logiciel. Elle exécute `git pull`, met à jour les dépendances Python, puis redémarre le programme.
 
