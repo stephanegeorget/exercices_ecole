@@ -6,6 +6,21 @@ DISPLAY_NAME = "Maths : Multiplication par un chiffre"
 
 import time
 
+
+class _Cancelled(Exception):
+    """Raised when the student types a cancel word during the exercise."""
+
+
+_CANCEL_WORDS = frozenset(("x", "annuler", "stop"))
+
+
+def _inp(prompt: str) -> str:
+    """Like input() but raises _Cancelled if the student types a cancel word."""
+    raw = input(prompt).strip()
+    if raw.lower() in _CANCEL_WORDS:
+        raise _Cancelled
+    return raw
+
 from .math_display_utils import (
     GREEN, YELLOW, CYAN, RED, BOLD, RESET,
     clear_screen, render_number_row, render_separator,
@@ -104,152 +119,177 @@ def _blink(
 # Core subroutine — reusable (e.g. from euclidean division)
 # ---------------------------------------------------------------------------
 
-def run_multiplication_interactive(a: int, b: int) -> None:
+def run_multiplication_interactive(a: int, b: int) -> bool:
     """Guide the student step-by-step through the column multiplication a × b.
 
     ``a`` may have any number of digits; ``b`` must be a single digit 0–9.
     All display and interaction happen here; the caller only provides operands.
+    Returns True if completed, False if the student cancelled (typed x/annuler/stop).
     """
     top = str(a)
     bot = str(b)
 
-    # --- Special case: multiplying by 0 ---
-    if b == 0:
-        width = len(top)
-        result_slots = [" "] * (width - 1) + ["0"]
+    try:
+        # --- Special case: multiplying by 0 ---
+        if b == 0:
+            width = len(top)
+            result_slots = [" "] * (width - 1) + ["0"]
+            clear_screen()
+            _show(top, bot, result_slots)
+            print(f"Tout nombre multiplié par 0 est égal à {BOLD}0{RESET}.")
+            _inp(f"\n{YELLOW}(x pour annuler){RESET}  Appuie sur Entrée pour continuer...")
+            return True
+
+        # --- Simple case: both operands are single digits (e.g. 8 × 6) ---
+        if len(top) == 1:
+            result = a * b
+            clear_screen()
+            print(f"\n  {BOLD}{a} × {b} = ?{RESET}    {YELLOW}(x pour annuler){RESET}\n")
+            while True:
+                raw = _inp(f"  {a} × {b} = ")
+                if raw.lstrip("-").isdigit() and int(raw) == result:
+                    print(f"  {GREEN}{BOLD}Bravo !  {a} × {b} = {result}{RESET}\n")
+                    _inp("  Entrée pour continuer...")
+                    return True
+                print(f"  {RED}Non, réessaie.{RESET}")
+            return True  # unreachable, satisfies type checker
+
+        result = a * b
+        result_str = str(result)
+        # width ≥ len(top) always when b ≥ 1
+        width = len(result_str)
+        result_slots: list[str] = ["?"] * width
+        carry = 0
+
+        # Initial layout
         clear_screen()
         _show(top, bot, result_slots)
-        print(f"Tout nombre multiplié par 0 est égal à {BOLD}0{RESET}.")
-        input("\nAppuie sur Entrée pour continuer...")
-        return
+        print(f"{YELLOW}(x pour annuler){RESET}")
+        _inp("Appuie sur Entrée pour commencer...")
 
-    result = a * b
-    result_str = str(result)
-    # width ≥ len(top) always when b ≥ 1
-    width = len(result_str)
-    result_slots: list[str] = ["?"] * width
-    carry = 0
+        for step in range(len(top)):
+            pos_from_right = step
+            top_idx = len(top) - 1 - step
+            digit_a = int(top[top_idx])
+            result_col = width - 1 - step
+            is_last_step = (step == len(top) - 1)
 
-    # Initial layout
-    clear_screen()
-    _show(top, bot, result_slots)
-    input("Appuie sur Entrée pour commencer...")
+            # Show display with current digit pair highlighted
+            clear_screen()
+            _show(top, bot, result_slots,
+                  top_hl=pos_from_right, bot_hl=True,
+                  carry=carry)
+            print(f"{YELLOW}(x pour annuler){RESET}")
 
-    for step in range(len(top)):
-        pos_from_right = step
-        top_idx = len(top) - 1 - step
-        digit_a = int(top[top_idx])
-        result_col = width - 1 - step
-        is_last_step = (step == len(top) - 1)
+            # Step 1 — ask the basic multiplication fact
+            product_raw = digit_a * b
+            while True:
+                raw = _inp(f"Combien font {digit_a} × {b} ? ")
+                if raw.lstrip("-").isdigit() and int(raw) == product_raw:
+                    print(f"{GREEN}Oui !{RESET}")
+                    break
+                print(f"{RED}Non, ce n'est pas {raw}... Combien font {digit_a} × {b} ?{RESET}")
 
-        # Show display with current digit pair highlighted
-        clear_screen()
-        _show(top, bot, result_slots,
-              top_hl=pos_from_right, bot_hl=True,
-              carry=carry)
+            # Step 2 — add previous carry if any
+            total = product_raw + carry
+            if carry > 0:
+                # For single-digit products, show the value temporarily in the result slot
+                if product_raw < 10:
+                    result_slots[result_col] = str(product_raw)
+                    clear_screen()
+                    _show(top, bot, result_slots,
+                          result_hl=result_col,
+                          carry=carry, carry_hl=True)
+                else:
+                    clear_screen()
+                    _show(top, bot, result_slots, carry=carry, carry_hl=True)
 
-        # Step 1 — ask the basic multiplication fact
-        product_raw = digit_a * b
-        while True:
-            raw = input(f"Combien font {digit_a} × {b} ? ").strip()
-            if raw.lstrip("-").isdigit() and int(raw) == product_raw:
-                print(f"{GREEN}Oui !{RESET}")
-                break
-            print(f"{RED}Non, ce n'est pas {raw}... Combien font {digit_a} × {b} ?{RESET}")
+                print(f"  {digit_a} × {b} = {BOLD}{product_raw}{RESET}")
+                print(f"J'avais une retenue de {carry}, donc {product_raw} + {carry} = ?")
+                while True:
+                    raw = _inp("> ")
+                    if raw.lstrip("-").isdigit() and int(raw) == total:
+                        print(f"{GREEN}Bravo !{RESET}")
+                        break
+                    print(f"{RED}Non, ce n'est pas {raw}... {product_raw} + {carry} = ?{RESET}")
 
-        # Step 2 — add previous carry if any
-        total = product_raw + carry
-        if carry > 0:
-            # For single-digit products, show the value temporarily in the result slot
-            if product_raw < 10:
-                result_slots[result_col] = str(product_raw)
+            # Step 3 — pose and carry
+            pose = total % 10
+            new_carry = total // 10
+
+            if is_last_step and new_carry > 0:
+                # Last digit and total is two digits: place both directly, no retenue left
+                result_slots[result_col] = str(pose)
+                result_slots[result_col - 1] = str(new_carry)
+                both_cols = frozenset({result_col - 1, result_col})
+
+                print(f"Je pose {YELLOW}{BOLD}{total}{RESET}.")
+                _inp("Appuie sur Entrée pour continuer...")
+
+                _blink(top, bot, result_slots, result_hl=both_cols, carry=0)
+
+                carry = 0
+
+                # Land with both digits highlighted
+                clear_screen()
+                _show(top, bot, result_slots, result_hl=both_cols)
+
+            else:
+                result_slots[result_col] = str(pose)
+
+                if new_carry > 0:
+                    print(f"Je pose {YELLOW}{BOLD}{pose}{RESET} et je retiens {CYAN}{BOLD}{new_carry}{RESET}.")
+                else:
+                    print(f"Je pose {YELLOW}{BOLD}{pose}{RESET}.")
+                _inp("Appuie sur Entrée pour continuer...")
+
+                # Blink posed digit (1 s), old carry cleared, new carry not yet shown
+                _blink(top, bot, result_slots, result_hl=result_col, carry=0)
+
+                if new_carry > 0:
+                    # Blink new carry (1 s), posed digit steady
+                    _blink(top, bot, result_slots, carry=new_carry, carry_hl=True)
+
+                carry = new_carry
+
+                # Land with posed digit AND retenue both highlighted
                 clear_screen()
                 _show(top, bot, result_slots,
                       result_hl=result_col,
-                      carry=carry, carry_hl=True)
-            else:
-                clear_screen()
-                _show(top, bot, result_slots, carry=carry, carry_hl=True)
+                      carry=carry,
+                      carry_hl=(carry > 0))
 
-            print(f"  {digit_a} × {b} = {BOLD}{product_raw}{RESET}")
-            print(f"J'avais une retenue de {carry}, donc {product_raw} + {carry} = ?")
-            while True:
-                raw = input("> ").strip()
-                if raw.lstrip("-").isdigit() and int(raw) == total:
-                    print(f"{GREEN}Bravo !{RESET}")
-                    break
-                print(f"{RED}Non, ce n'est pas {raw}... {product_raw} + {carry} = ?{RESET}")
+            _inp("Appuie sur Entrée pour continuer...")
 
-        # Step 3 — pose and carry
-        pose = total % 10
-        new_carry = total // 10
-
-        if is_last_step and new_carry > 0:
-            # Last digit and total is two digits: place both directly, no retenue left
-            result_slots[result_col] = str(pose)
-            result_slots[result_col - 1] = str(new_carry)
-            both_cols = frozenset({result_col - 1, result_col})
-
-            print(f"Je pose {YELLOW}{BOLD}{total}{RESET}.")
-            input("Appuie sur Entrée pour continuer...")
-
-            _blink(top, bot, result_slots, result_hl=both_cols, carry=0)
-
-            carry = 0
-
-            # Land with both digits highlighted
+        # Place any remaining carry (normal path: last step had no overflow)
+        if carry > 0:
+            result_slots[0] = str(carry)
             clear_screen()
-            _show(top, bot, result_slots, result_hl=both_cols)
+            _show(top, bot, result_slots)
 
-        else:
-            result_slots[result_col] = str(pose)
-
-            if new_carry > 0:
-                print(f"Je pose {YELLOW}{BOLD}{pose}{RESET} et je retiens {CYAN}{BOLD}{new_carry}{RESET}.")
-            else:
-                print(f"Je pose {YELLOW}{BOLD}{pose}{RESET}.")
-            input("Appuie sur Entrée pour continuer...")
-
-            # Blink posed digit (1 s), old carry cleared, new carry not yet shown
-            _blink(top, bot, result_slots, result_hl=result_col, carry=0)
-
-            if new_carry > 0:
-                # Blink new carry (1 s), posed digit steady
-                _blink(top, bot, result_slots, carry=new_carry, carry_hl=True)
-
-            carry = new_carry
-
-            # Land with posed digit AND retenue both highlighted
-            clear_screen()
-            _show(top, bot, result_slots,
-                  result_hl=result_col,
-                  carry=carry,
-                  carry_hl=(carry > 0))
-
-        input("Appuie sur Entrée pour continuer...")
-
-    # Place any remaining carry (normal path: last step had no overflow)
-    if carry > 0:
-        result_slots[0] = str(carry)
+        # Final verification
         clear_screen()
         _show(top, bot, result_slots)
+        print(f"Quel est le résultat de {a} × {b} ?")
+        while True:
+            raw = _inp("> ")
+            if raw == result_str:
+                print(f"{GREEN}Bravo !{RESET}")
+                break
+            print(f"{RED}Non, ce n'est pas {raw}... Quel est le résultat de {a} × {b} ?{RESET}")
 
-    # Final verification
-    clear_screen()
-    _show(top, bot, result_slots)
-    print(f"Quel est le résultat de {a} × {b} ?")
-    while True:
-        raw = input("> ").strip()
-        if raw == result_str:
-            print(f"{GREEN}Bravo !{RESET}")
-            break
-        print(f"{RED}Non, ce n'est pas {raw}... Quel est le résultat de {a} × {b} ?{RESET}")
+        # Show final result in green
+        clear_screen()
+        _show(top, bot, result_slots, result_final=True)
+        print(f"  {GREEN}{BOLD}{a} × {b} = {result}{RESET}\n")
+        _inp("Appuie sur Entrée pour continuer...")
+        return True
 
-    # Show final result in green
-    clear_screen()
-    _show(top, bot, result_slots, result_final=True)
-    print(f"  {GREEN}{BOLD}{a} × {b} = {result}{RESET}\n")
-    input("Appuie sur Entrée pour continuer...")
+    except _Cancelled:
+        clear_screen()
+        print(f"\n  {YELLOW}Multiplication annulée.{RESET}\n")
+        input("  Appuie sur Entrée pour continuer...")
+        return False
 
 
 # ---------------------------------------------------------------------------
