@@ -43,6 +43,7 @@ from . import (
     math_nombres_entiers_et_decimaux,
     math_nombres_decimaux,
     math_tables_multiplication,
+    math_multiplication_posee_1_chiffre,
     musique_cest_quoi,
     musique_notes_portee,
     physique_changements_etats,
@@ -90,6 +91,7 @@ CATEGORIES = [
         "Mathématiques",
         [
             math_tables_multiplication,
+            math_multiplication_posee_1_chiffre,
             math_nombres_decimaux,
             math_comparaison_encadrement_decimaux,
             math_nombres_entiers_et_decimaux,
