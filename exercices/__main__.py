@@ -42,6 +42,7 @@ from . import (
     math_exercices_2_3_4_recettes,
     math_nombres_entiers_et_decimaux,
     math_nombres_decimaux,
+    math_multiplication_1chiffre,
     math_tables_multiplication,
     musique_cest_quoi,
     musique_notes_portee,
@@ -89,6 +90,7 @@ CATEGORIES = [
     (
         "Mathématiques",
         [
+            math_multiplication_1chiffre,
             math_tables_multiplication,
             math_nombres_decimaux,
             math_comparaison_encadrement_decimaux,
