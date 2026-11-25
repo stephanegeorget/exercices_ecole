@@ -3,30 +3,15 @@
 # Nom lisible de l'exercice pour le menu principal
 DISPLAY_NAME = "Sciences : Coordonnées géographiques (latitude et longitude)"
 
-import unicodedata
-
-from .utils import show_lesson
+from .utils import ask_choice_with_navigation, show_lesson
 from .logger import log_result
+
 
 GREEN = "\033[92m"
 RED = "\033[91m"
 CYAN = "\033[96m"
 BOLD = "\033[1m"
 RESET = "\033[0m"
-
-
-def _normalise(text: str) -> str:
-    """Met la réponse en minuscules, sans accents, espaces ni symbole ° autour."""
-
-    decomposed = unicodedata.normalize("NFKD", text)
-    without_accents = "".join(c for c in decomposed if not unicodedata.combining(c))
-    return without_accents.strip().lower().replace("°", "").replace("degres", "").replace(" ", "")
-
-
-def _is_correct(reply: str, accepted: tuple[str, ...]) -> bool:
-    """Vérifie que la réponse correspond à l'une des formes acceptées."""
-
-    return _normalise(reply) in {_normalise(option) for option in accepted}
 
 
 def main() -> None:
@@ -66,54 +51,71 @@ Cherche sur une carte la latitude et la longitude de ta ville ou de ton école.
     show_lesson(lesson)
 
     questions = [
-        (
-            "Quel est le méridien de référence, celui qui vaut 0° de longitude ?",
-            ("Greenwich",),
-            "Le méridien de référence passe par Greenwich, près de Londres.",
-        ),
-        (
-            "Quelle est la latitude de l'équateur (en degrés) ?",
-            ("0",),
-            "L'équateur est à 0° de latitude.",
-        ),
-        (
-            "Quelle est la latitude du pôle Nord (en degrés) ?",
-            ("90", "90 N", "90 Nord"),
-            "Le pôle Nord est à 90° de latitude Nord.",
-        ),
-        (
-            "Les méridiens relient-ils le pôle Nord au pôle Sud, ou sont-ils des cercles parallèles à l'équateur ?",
-            ("pôle Nord au pôle Sud", "pole nord au pole sud", "nord-sud", "nord sud"),
-            "Les méridiens relient le pôle Nord au pôle Sud ; les parallèles sont parallèles à l'équateur.",
-        ),
-        (
-            "Dans la coordonnée 48° N ; 2° E, quel nombre donne la latitude ?",
-            ("48", "48 N", "48°N"),
-            "La latitude vient en premier : 48° N.",
-        ),
-        (
-            "Paris est-il à l'est ou à l'ouest de Greenwich ?",
-            ("est", "Est", "E"),
-            "Paris est à environ 2° à l'Est de Greenwich.",
-        ),
-        (
-            "Quel nom donne-t-on aux lignes imaginaires parallèles à l'équateur ?",
-            ("parallèles", "parallele", "parallèle", "parallèles"),
-            "Ce sont les parallèles.",
-        ),
+        {
+            "question": "Quel est le méridien de référence, celui qui vaut 0° de longitude ?",
+            "choices": ["Greenwich", "l'équateur", "le pôle Nord"],
+            "answer": 0,
+            "explanation": "Le méridien de référence passe par Greenwich, près de Londres.",
+        },
+        {
+            "question": "Quelle est la latitude de l'équateur ?",
+            "choices": ["90°", "0°", "180°"],
+            "answer": 1,
+            "explanation": "L'équateur est à 0° de latitude.",
+        },
+        {
+            "question": "Quelle est la latitude du pôle Nord ?",
+            "choices": ["0°", "90° N", "180° E"],
+            "answer": 1,
+            "explanation": "Le pôle Nord est à 90° de latitude Nord.",
+        },
+        {
+            "question": "Quelle direction relie le pôle Nord au pôle Sud ?",
+            "choices": ["les parallèles", "les méridiens", "l'équateur"],
+            "answer": 1,
+            "explanation": "Les méridiens relient le pôle Nord au pôle Sud ; les parallèles sont parallèles à l'équateur.",
+        },
+        {
+            "question": "Dans la coordonnée 48° N ; 2° E, quel nombre donne la latitude ?",
+            "choices": ["2", "48", "90"],
+            "answer": 1,
+            "explanation": "La latitude vient en premier : 48° N.",
+        },
+        {
+            "question": "Paris est-il à l'est ou à l'ouest de Greenwich ?",
+            "choices": ["à l'ouest", "à l'est"],
+            "answer": 1,
+            "explanation": "Paris est à environ 2° à l'Est de Greenwich.",
+        },
+        {
+            "question": "Comment appelle-t-on les lignes imaginaires parallèles à l'équateur ?",
+            "choices": ["les méridiens", "les parallèles", "les pôles"],
+            "answer": 1,
+            "explanation": "Ce sont les parallèles.",
+        },
     ]
 
-    print(f"{CYAN}{BOLD}✏️  Quiz : réponds à chaque question !  ✏️{RESET}")
+    print("Quiz : choisis la bonne réponse avec les flèches, ou tape la lettre puis Entrée.")
     score = 0
-    for question, accepted, explanation in questions:
-        reply = input(f"\n{question}\n-> ").strip()
-        if _is_correct(reply, accepted):
+    total = len(questions)
+    for index, question in enumerate(questions, start=1):
+        print(f"\nQuestion {index}")
+        print(question["question"])
+        choices = question["choices"]
+        student, option_letters, quit_requested = ask_choice_with_navigation(choices)
+        if quit_requested:
+            print("\nRetour au menu demandé. Fin de l'exercice.\n")
+            return
+        correct_index = question["answer"]
+        correct_letter = option_letters[correct_index]
+        correct_text = choices[correct_index]
+        if student == correct_index:
             print(f"{GREEN}Bien joué ! ✅{RESET}")
             score += 1
         else:
-            print(f"{RED}Oups ! ❌ {explanation}{RESET}")
+            print(f"{RED}Pas tout à fait. ❌ Réponse attendue : {correct_letter}) {correct_text}{RESET}")
+            print(f"ℹ️ {question['explanation']}")
 
-    total = len(questions)
     print(f"\n{BOLD}Score final : {score}/{total}{RESET}")
     if score == total:
         print(f"{GREEN}Excellent ! Tu sais te repérer sur la Terre ! 🥳{RESET}")
@@ -121,7 +123,8 @@ Cherche sur une carte la latitude et la longitude de ta ville ou de ton école.
         print(f"{CYAN}Bravo ! Relis les méridiens et les parallèles. 👍{RESET}")
     else:
         print(f"{RED}Relis la leçon et réessaie ! 💪{RESET}")
-    log_result("sciences_coordonnees_geographiques", score / total * 100)
+    percentage = score / total * 100 if total else 0.0
+    log_result("sciences_coordonnees_geographiques", percentage)
 
 
 if __name__ == "__main__":
