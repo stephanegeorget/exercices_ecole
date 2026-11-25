@@ -49,6 +49,7 @@ from . import (
     musique_notes_portee,
     physique_changements_etats,
     physique_proprietes_eau_liquide,
+    sciences_coordonnees_geographiques,
     sciences_vivant_non_vivant,
     star_wars_quiz,
 )
@@ -111,6 +112,7 @@ CATEGORIES = [
         [
             physique_changements_etats,
             physique_proprietes_eau_liquide,
+            sciences_coordonnees_geographiques,
             sciences_vivant_non_vivant,
         ],
     ),
