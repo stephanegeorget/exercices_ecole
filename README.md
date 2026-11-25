@@ -16,6 +16,7 @@ Le menu propose plusieurs exercices :
 - `geometrie_notation` propose une leçon et un quiz sur les segments, droites et demi-droites.
 - `geometrie_triangle_isocele_angles_image` propose un quiz de géométrie très guidé (baby steps), inspiré d'une fiche photo, pour calculer des angles dans des triangles isocèles.
 - `musique_cest_quoi` propose une leçon colorée et un quiz pour découvrir la portée, les notes et les rythmes.
+- `sciences_coordonnees_geographiques` propose une leçon et un quiz à choix multiples sur la latitude, la longitude, l'équateur, les parallèles, les méridiens, Greenwich et les points cardinaux.
 - `sciences_vivant_non_vivant` propose une leçon et un quiz pour classer les éléments en vivant, naturel non vivant ou fabriqué par l'humain.
 - `geographie_habiter_espaces_agricoles` propose une leçon et un quiz de 40 questions sur les espaces agricoles à faibles densités (Grandes Plaines et Bornéo).
 - `francais_cloze_dictations` fournit un atelier TUI pour créer et pratiquer des dictées à trous avec gestion des textes, des clozes et des tentatives élèves.

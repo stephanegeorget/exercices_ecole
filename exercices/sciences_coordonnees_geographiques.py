@@ -70,7 +70,7 @@ Cherche sur une carte la latitude et la longitude de ta ville ou de ton école.
             "explanation": "Le pôle Nord est à 90° de latitude Nord.",
         },
         {
-            "question": "Quelle direction relie le pôle Nord au pôle Sud ?",
+            "question": "Quelles lignes imaginaires relient le pôle Nord au pôle Sud ?",
             "choices": ["les parallèles", "les méridiens", "l'équateur"],
             "answer": 1,
             "explanation": "Les méridiens relient le pôle Nord au pôle Sud ; les parallèles sont parallèles à l'équateur.",
